@@ -9,3 +9,7 @@ through-hole DIP components and a custom expansion architecture.
 
 The project is developed incrementally, starting with a minimal working
 system and gradually adding new hardware and software capabilities.
+
+## Links
+
+- [DIY EEPROM Programmer](https://medium.com/@erikvanzijst/diy-eeprom-programmer-4fd11a486ea)
