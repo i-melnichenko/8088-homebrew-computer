@@ -167,16 +167,6 @@
 	)
 	(wire
 		(pts
-			(xy 215.265 77.47) (xy 215.265 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1d45cf8a-8eae-4be5-a087-73109e821d87")
-	)
-	(wire
-		(pts
 			(xy 108.585 96.52) (xy 113.665 96.52)
 		)
 		(stroke
@@ -314,16 +304,6 @@
 			(type default)
 		)
 		(uuid "38c17b0e-6018-47cd-b807-b279e747b108")
-	)
-	(wire
-		(pts
-			(xy 160.655 43.18) (xy 215.265 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3be72fd2-67fd-46c3-9d71-d95eade868bf")
 	)
 	(wire
 		(pts
@@ -1087,16 +1067,6 @@
 	)
 	(wire
 		(pts
-			(xy 207.645 77.47) (xy 207.645 55.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ab4a2d2f-20d9-4602-85dc-0bcc2a4728c5")
-	)
-	(wire
-		(pts
 			(xy 212.725 50.8) (xy 212.725 77.47)
 		)
 		(stroke
@@ -1314,16 +1284,6 @@
 			(type default)
 		)
 		(uuid "d6fec7b3-2b07-409a-851e-34955374b841")
-	)
-	(wire
-		(pts
-			(xy 207.645 55.88) (xy 126.365 55.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d7c17c8b-6503-42bc-9ef4-4ba6d33d88df")
 	)
 	(wire
 		(pts
@@ -3618,16 +3578,6 @@
 				(justify right)
 			)
 		)
-		(pin "MEM_EXP2_CS" input
-			(at 126.365 55.88 0)
-			(uuid "a5f53883-d10d-4df8-972f-3626f32c8421")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a"
@@ -4033,16 +3983,6 @@
 		(pin "IO_EXP1_CS" input
 			(at 160.655 40.64 0)
 			(uuid "84a0d055-b655-4d88-8019-6c09bd0631f4")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "IO_EXP2_CS" input
-			(at 160.655 43.18 0)
-			(uuid "3eb1ca17-9c96-49c7-abac-5e3556b7ac8f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4929,26 +4869,6 @@
 		(pin "MEM_EXP1_CS" input
 			(at 210.185 77.47 90)
 			(uuid "fc06462f-3ecc-4eb3-a760-61239b8c36d7")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "IO_EXP2_CS" input
-			(at 215.265 77.47 90)
-			(uuid "5bc7bea0-36a3-4a20-b8f5-c2e5747e4974")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MEM_EXP2_CS" input
-			(at 207.645 77.47 90)
-			(uuid "1f54e521-ae73-446d-9baf-05e12a28843b")
 			(effects
 				(font
 					(size 1.27 1.27)

@@ -1286,7 +1286,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ab6d37a2-4e7a-448a-9ac1-668797c8fd43")
-		(property "Reference" "J2"
+		(property "Reference" "J1"
 			(at 105.41 82.5499 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1350,7 +1350,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/e9d836d6-3c3a-4b6e-a562-389c64894272"
-					(reference "J2")
+					(reference "J1")
 					(unit 1)
 				)
 			)
