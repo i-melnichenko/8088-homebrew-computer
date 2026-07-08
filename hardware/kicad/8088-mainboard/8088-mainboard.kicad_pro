@@ -60,11 +60,11 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.5,
+          "min_clearance": 0.0,
           "min_island_area": 10.0,
           "min_thickness": 0.25,
           "pad_connection": 1,
-          "remove_islands": 0,
+          "remove_islands": 1,
           "thermal_relief_gap": 0.5,
           "thermal_relief_spoke_width": 0.5
         }
@@ -146,7 +146,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.25,
+        "min_clearance": 0.2,
         "min_connection": 0.25,
         "min_copper_edge_clearance": 0.5,
         "min_groove_width": 0.0,
@@ -158,7 +158,7 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.45,
+        "min_through_hole_diameter": 0.4,
         "min_track_width": 0.25,
         "min_via_annular_width": 0.2,
         "min_via_diameter": 0.8,
@@ -543,9 +543,24 @@
       },
       {
         "clearance": 0.25,
-        "name": "Power",
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Bus",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "tuning_profile": "",
+        "via_diameter": 0.8,
+        "via_drill": 0.4
+      },
+      {
+        "clearance": 0.25,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.8,
         "tuning_profile": "",
@@ -558,7 +573,24 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VCC"
+      },
+      {
+        "netclass": "Bus",
+        "pattern": "/A*"
+      },
+      {
+        "netclass": "Default",
+        "pattern": "/D*"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
@@ -696,7 +728,7 @@
         "uuid": "15ce4f45-6f32-456e-874c-aac11293789a"
       }
     ],
-    "used_designators": "J1-4,SW1,JP1,R1-17,C1-19,D1-10,#PWR1-90,Y1,U1-13",
+    "used_designators": "J_DEBUG1,TP_GND1,C1-19,SW1,U1-13,TP1,Y1,#PWR1-92,D1-10,R1-17,JP1,J1-4",
     "variants": []
   },
   "sheets": [

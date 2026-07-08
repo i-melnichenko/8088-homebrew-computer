@@ -852,16 +852,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 73.66) (xy 154.94 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1dd7d8a5-4d4c-46ba-9cff-3450f40ade56")
-	)
-	(wire
-		(pts
 			(xy 119.38 76.2) (xy 101.6 76.2)
 		)
 		(stroke
@@ -1060,16 +1050,6 @@
 		)
 		(uuid "9b98cf9d-7194-4e34-8512-839b99715fc4")
 	)
-	(label "MEM_C0000_DFFFF"
-		(at 134.62 73.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "9f9eb275-05ce-4bb2-882c-1b743fdc5731")
-	)
 	(label "MEM_60000_7FFFF"
 		(at 119.38 66.04 180)
 		(effects
@@ -1206,17 +1186,6 @@
 			(justify left)
 		)
 		(uuid "9ef2b3b4-b147-4032-97ed-cadcc3b89dd5")
-	)
-	(hierarchical_label "MEM_EXP2_CS"
-		(shape input)
-		(at 154.94 73.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "b220feb6-53aa-4fc2-abba-5617d3aa8c90")
 	)
 	(hierarchical_label "MEM_EXP0_CS"
 		(shape input)
