@@ -2209,20 +2209,10 @@
 		(uuid "14cd4bc4-84bb-4664-abb6-1714913ab438")
 	)
 	(junction
-		(at 68.58 95.25)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f4852869-f4a6-4bfa-9612-b805b0812e13")
-	)
-	(junction
 		(at 85.09 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fa3f9f55-5f82-481e-9dd0-104eb0f61914")
-	)
-	(no_connect
-		(at 68.58 124.46)
-		(uuid "882e9bf7-4d60-4e21-805e-c27d97788b19")
 	)
 	(no_connect
 		(at 68.58 144.78)
@@ -2250,6 +2240,16 @@
 	)
 	(wire
 		(pts
+			(xy 69.85 100.33) (xy 69.85 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "18b8bea8-ac0a-46ec-a8e2-5534e39ff082")
+	)
+	(wire
+		(pts
 			(xy 85.09 97.79) (xy 95.25 97.79)
 		)
 		(stroke
@@ -2267,16 +2267,6 @@
 			(type default)
 		)
 		(uuid "26765b9c-db28-4cad-9ab0-4a7a825c6505")
-	)
-	(wire
-		(pts
-			(xy 68.58 100.33) (xy 68.58 95.25)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "277d2e57-58cd-4067-96d0-a7b4fb9f53af")
 	)
 	(wire
 		(pts
@@ -2330,16 +2320,6 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 121.92) (xy 53.34 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8c81f6a3-43fb-4334-a8fa-d699e6f0b01f")
-	)
-	(wire
-		(pts
 			(xy 49.53 142.24) (xy 53.34 142.24)
 		)
 		(stroke
@@ -2367,26 +2347,6 @@
 			(type default)
 		)
 		(uuid "e28808d8-cc12-4817-8180-99e1e0da0bff")
-	)
-	(wire
-		(pts
-			(xy 69.85 95.25) (xy 68.58 95.25)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f3a62541-96c0-4a48-8ebb-60f225f56308")
-	)
-	(wire
-		(pts
-			(xy 69.85 100.33) (xy 68.58 100.33)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fce2c848-2c87-4c68-a4be-8bf377285213")
 	)
 	(hierarchical_label "D7"
 		(shape input)
@@ -2421,6 +2381,17 @@
 		)
 		(uuid "1d1f5aa6-0d5a-4a32-af26-1cd454b65705")
 	)
+	(hierarchical_label "LED_PANEL_CS"
+		(shape input)
+		(at 54.61 97.79 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3a13fb9a-61e3-4fda-be3e-aebca7265af6")
+	)
 	(hierarchical_label "D2"
 		(shape input)
 		(at 95.25 80.01 180)
@@ -2432,16 +2403,16 @@
 		)
 		(uuid "7950abb2-9f12-4bd0-b91e-9dcae22dad74")
 	)
-	(hierarchical_label "MWTC"
+	(hierarchical_label "IOWC"
 		(shape input)
-		(at 53.34 97.79 180)
+		(at 54.61 106.68 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "7d12fd67-fc77-4366-a4d1-b2568c0ad4a9")
+		(uuid "7f12fcca-0bd0-43c6-8e27-57f46a7d4392")
 	)
 	(hierarchical_label "D6"
 		(shape input)
@@ -2453,6 +2424,17 @@
 			(justify right)
 		)
 		(uuid "894194c8-5a82-41b7-9292-2ca1db4f98ea")
+	)
+	(hierarchical_label "IOWC"
+		(shape input)
+		(at 54.61 111.76 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "a71cef1a-a2ba-4edb-a2d3-27673c7348bc")
 	)
 	(hierarchical_label "D0"
 		(shape input)
@@ -2489,7 +2471,7 @@
 	)
 	(hierarchical_label "LED_PANEL_CS"
 		(shape input)
-		(at 53.34 92.71 180)
+		(at 54.61 92.71 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3199,7 +3181,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS00")
-		(at 60.96 95.25 0)
+		(at 62.23 95.25 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3210,7 +3192,7 @@
 		(fields_autoplaced yes)
 		(uuid "5e4b5727-f3f7-4ca0-b47c-f90cc756c26f")
 		(property "Reference" "U11"
-			(at 60.9517 86.36 0)
+			(at 62.2217 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3220,7 +3202,7 @@
 			)
 		)
 		(property "Value" "74LS00"
-			(at 60.9517 88.9 0)
+			(at 62.2217 88.9 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3230,7 +3212,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-			(at 60.96 95.25 0)
+			(at 62.23 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3241,7 +3223,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls00"
-			(at 60.96 95.25 0)
+			(at 62.23 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3252,7 +3234,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NAND gate"
-			(at 60.96 95.25 0)
+			(at 62.23 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3468,84 +3450,6 @@
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/84282b2b-43ee-46fa-876b-fa0b647a45d9"
 					(reference "#PWR072")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 53.34 127 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6f1ee60f-2291-4c92-827b-9164b5e44088")
-		(property "Reference" "#PWR068"
-			(at 53.34 133.35 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 53.34 132.08 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 53.34 127 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 53.34 127 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 53.34 127 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "ffb5db80-ce8a-425d-b58f-e237bf592c7c")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/84282b2b-43ee-46fa-876b-fa0b647a45d9"
-					(reference "#PWR068")
 					(unit 1)
 				)
 			)
@@ -4498,84 +4402,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 49.53 121.92 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b49ce637-3e4a-4707-afc1-57b82733c242")
-		(property "Reference" "#PWR067"
-			(at 49.53 128.27 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 49.53 127 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 49.53 121.92 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 49.53 121.92 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 49.53 121.92 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "034a4ba8-3fa6-47d8-af4a-4f3b5f145bbb")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/84282b2b-43ee-46fa-876b-fa0b647a45d9"
-					(reference "#PWR067")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:LED")
 		(at 134.62 73.66 90)
 		(unit 1)
@@ -5240,7 +5066,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS00")
-		(at 60.96 124.46 0)
+		(at 62.23 109.22 0)
 		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5251,7 +5077,7 @@
 		(fields_autoplaced yes)
 		(uuid "de177e4a-d619-441c-b3e3-70362a2e1cc2")
 		(property "Reference" "U11"
-			(at 60.9517 115.57 0)
+			(at 62.2217 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5261,7 +5087,7 @@
 			)
 		)
 		(property "Value" "74LS00"
-			(at 60.9517 118.11 0)
+			(at 62.2217 102.87 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5271,7 +5097,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-			(at 60.96 124.46 0)
+			(at 62.23 109.22 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5282,7 +5108,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls00"
-			(at 60.96 124.46 0)
+			(at 62.23 109.22 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5293,7 +5119,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NAND gate"
-			(at 60.96 124.46 0)
+			(at 62.23 109.22 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
