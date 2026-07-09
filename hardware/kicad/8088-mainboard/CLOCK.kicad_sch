@@ -1592,6 +1592,14 @@
 		(at 125.73 100.33)
 		(uuid "2521505b-3461-4c15-aa96-6b5c2465279e")
 	)
+	(no_connect
+		(at 146.05 97.79)
+		(uuid "46be7fea-852b-4580-9bd9-df4de53b8775")
+	)
+	(no_connect
+		(at 146.05 95.25)
+		(uuid "76e33579-4f76-4b51-a889-3b12c85420f2")
+	)
 	(wire
 		(pts
 			(xy 168.91 118.11) (xy 173.99 118.11)
@@ -1631,16 +1639,6 @@
 			(type default)
 		)
 		(uuid "2c4460b7-69f0-4dd7-b6d3-d69f54104e08")
-	)
-	(wire
-		(pts
-			(xy 156.21 72.39) (xy 143.51 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2ef2f875-7f22-4b9e-823e-f76d3f9ab22d")
 	)
 	(wire
 		(pts
@@ -1701,16 +1699,6 @@
 			(type default)
 		)
 		(uuid "51fd5511-db1b-4ef5-a80e-d97290f9e4f9")
-	)
-	(wire
-		(pts
-			(xy 156.21 73.025) (xy 156.21 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "52627598-6e2b-4a97-b982-319471768b7f")
 	)
 	(wire
 		(pts
@@ -1973,28 +1961,6 @@
 			(justify left)
 		)
 		(uuid "6fc84180-280d-4865-8bc0-4ccc17207b2f")
-	)
-	(hierarchical_label "OSC"
-		(shape input)
-		(at 146.05 97.79 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "75499c99-a69f-4c87-adb9-4aa7e4b2b3a1")
-	)
-	(hierarchical_label "PCLK"
-		(shape input)
-		(at 146.05 95.25 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "a1d52238-3c38-4e87-8d8d-55739c851b01")
 	)
 	(hierarchical_label "CLK"
 		(shape input)
@@ -3508,7 +3474,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 156.21 73.025 0)
+		(at 143.51 72.39 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3519,7 +3485,7 @@
 		(fields_autoplaced yes)
 		(uuid "d70eb078-4d48-4f2a-bdb2-630d5c8a5c79")
 		(property "Reference" "#PWR04"
-			(at 156.21 79.375 0)
+			(at 149.86 72.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3530,17 +3496,18 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 156.21 78.105 0)
+			(at 147.32 72.3899 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 		(property "Footprint" ""
-			(at 156.21 73.025 0)
+			(at 143.51 72.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3551,7 +3518,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 73.025 0)
+			(at 143.51 72.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3562,7 +3529,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 156.21 73.025 0)
+			(at 143.51 72.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 1.27
+          "drill": 3.2,
+          "height": 6.4,
+          "width": 6.4
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -61,7 +61,7 @@
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
           "min_clearance": 0.0,
-          "min_island_area": 10.0,
+          "min_island_area": 9.99999999996,
           "min_thickness": 0.25,
           "pad_connection": 1,
           "remove_islands": 1,
@@ -146,7 +146,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.2,
+        "min_clearance": 0.25,
         "min_connection": 0.25,
         "min_copper_edge_clearance": 0.5,
         "min_groove_width": 0.0,
@@ -596,7 +596,7 @@
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "../../../manufacturing/8088-mainboard/rev1.0/",
       "specctra_dsn": "",
       "vrml": ""
     },
@@ -728,7 +728,7 @@
         "uuid": "15ce4f45-6f32-456e-874c-aac11293789a"
       }
     ],
-    "used_designators": "J_DEBUG1,TP_GND1,C1-19,SW1,U1-13,TP1,Y1,#PWR1-92,D1-10,R1-17,JP1,J1-4",
+    "used_designators": "#FLG1-2,J1-4,H1-4,R1-17,JP1,#PWR1-101,D1-10,Y1,TP1,C1-19,SW1,U1-15,TP_GND1,J_DEBUG1",
     "variants": []
   },
   "sheets": [
