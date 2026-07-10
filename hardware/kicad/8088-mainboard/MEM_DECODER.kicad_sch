@@ -940,6 +940,16 @@
 		)
 		(uuid "19bb667f-8833-4b1d-9f36-bf7873b2d787")
 	)
+	(bus
+		(pts
+			(xy 0.1524 35.7124) (xy 26.8224 35.7124)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2626cfe3-1287-4ba0-b81c-1030f8aca05e")
+	)
 	(wire
 		(pts
 			(xy 121.92 76.2) (xy 101.6 76.2)
@@ -960,6 +970,16 @@
 		)
 		(uuid "2ab0c9a4-6097-492b-ad47-9471fa941401")
 	)
+	(bus
+		(pts
+			(xy 0.1524 0.1524) (xy 36.9824 0.1524)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3da1a09b-f9eb-4cf7-8024-5517001e31ff")
+	)
 	(wire
 		(pts
 			(xy 121.92 71.12) (xy 101.6 71.12)
@@ -969,6 +989,16 @@
 			(type default)
 		)
 		(uuid "67a12558-a05b-4816-974d-c201066cdabb")
+	)
+	(bus
+		(pts
+			(xy 0.1524 0.1524) (xy 0.1524 35.7124)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "86a61b74-4bca-4c5b-95c3-8c1daac1c506")
 	)
 	(wire
 		(pts
@@ -1075,7 +1105,7 @@
 		(uuid "52fca38d-e1a9-4d34-adc8-cc7844fda3ad")
 	)
 	(hierarchical_label "RAM_BANK1_CS"
-		(shape input)
+		(shape output)
 		(at 121.92 60.96 0)
 		(effects
 			(font
@@ -1086,7 +1116,7 @@
 		(uuid "575fca83-c18a-4c25-a19f-186741b0abca")
 	)
 	(hierarchical_label "MEM_EXP1_CS"
-		(shape input)
+		(shape output)
 		(at 121.92 71.12 0)
 		(effects
 			(font
@@ -1097,7 +1127,7 @@
 		(uuid "7eb5f6bc-884a-4fc6-a131-ae08cccaf135")
 	)
 	(hierarchical_label "ROM_CS"
-		(shape input)
+		(shape output)
 		(at 121.92 76.2 0)
 		(effects
 			(font
@@ -1108,7 +1138,7 @@
 		(uuid "9dc7d323-23ce-4584-8a4c-01e28709bcd3")
 	)
 	(hierarchical_label "RAM_BANK0_CS"
-		(shape input)
+		(shape output)
 		(at 121.92 58.42 0)
 		(effects
 			(font
@@ -1119,7 +1149,7 @@
 		(uuid "9ef2b3b4-b147-4032-97ed-cadcc3b89dd5")
 	)
 	(hierarchical_label "MEM_EXP0_CS"
-		(shape input)
+		(shape output)
 		(at 121.92 68.58 0)
 		(effects
 			(font

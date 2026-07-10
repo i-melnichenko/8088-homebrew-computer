@@ -1541,12 +1541,6 @@
 		(uuid "19e80195-c499-4574-a35b-9920f74fcb4c")
 	)
 	(junction
-		(at 173.99 118.11)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "3565891c-294e-4c4d-92d5-ede5d676e1b0")
-	)
-	(junction
 		(at 123.19 105.41)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1571,22 +1565,28 @@
 		(uuid "a52209b4-3ccc-4a65-b876-383b8caae6a9")
 	)
 	(junction
-		(at 157.48 118.11)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "bfad3c4f-2f94-4651-86f6-d8924497d9be")
-	)
-	(junction
 		(at 123.19 92.71)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c2eb40dc-9d1b-4d07-ac06-f73614a7a2f4")
 	)
 	(junction
+		(at 175.26 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "cf9e14b0-fd28-4504-a1b1-8845d788810d")
+	)
+	(junction
 		(at 135.89 72.39)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cfc6120e-becf-4768-96cd-0c8fd3397df5")
+	)
+	(junction
+		(at 157.48 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e745adcd-5157-4bca-a8cb-6b30f4f34081")
 	)
 	(no_connect
 		(at 125.73 100.33)
@@ -1602,7 +1602,7 @@
 	)
 	(wire
 		(pts
-			(xy 168.91 118.11) (xy 173.99 118.11)
+			(xy 170.18 118.11) (xy 175.26 118.11)
 		)
 		(stroke
 			(width 0)
@@ -1642,7 +1642,7 @@
 	)
 	(wire
 		(pts
-			(xy 157.48 118.11) (xy 161.29 118.11)
+			(xy 157.48 118.11) (xy 162.56 118.11)
 		)
 		(stroke
 			(width 0)
@@ -1682,7 +1682,7 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 105.41) (xy 173.99 118.11)
+			(xy 175.26 105.41) (xy 175.26 118.11)
 		)
 		(stroke
 			(width 0)
@@ -1702,7 +1702,7 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 118.11) (xy 173.99 121.92)
+			(xy 175.26 118.11) (xy 175.26 121.92)
 		)
 		(stroke
 			(width 0)
@@ -1812,7 +1812,7 @@
 	)
 	(wire
 		(pts
-			(xy 146.05 105.41) (xy 173.99 105.41)
+			(xy 146.05 105.41) (xy 175.26 105.41)
 		)
 		(stroke
 			(width 0)
@@ -1941,7 +1941,7 @@
 		(uuid "9debbc41-c880-4f55-a6b7-b8c919eacc8d")
 	)
 	(hierarchical_label "RESET"
-		(shape input)
+		(shape output)
 		(at 146.05 90.17 0)
 		(effects
 			(font
@@ -1952,7 +1952,7 @@
 		(uuid "462b0af8-083f-483c-8155-a4c4ff4e1d39")
 	)
 	(hierarchical_label "READY"
-		(shape input)
+		(shape output)
 		(at 146.05 85.09 0)
 		(effects
 			(font
@@ -1963,7 +1963,7 @@
 		(uuid "6fc84180-280d-4865-8bc0-4ccc17207b2f")
 	)
 	(hierarchical_label "CLK"
-		(shape input)
+		(shape output)
 		(at 146.05 80.01 0)
 		(effects
 			(font
@@ -1974,7 +1974,7 @@
 		(uuid "c0df3d3a-71be-4ebe-b482-8bef0b87b1f3")
 	)
 	(hierarchical_label "RESET"
-		(shape input)
+		(shape output)
 		(at 207.01 100.33 90)
 		(effects
 			(font
@@ -2382,7 +2382,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 173.99 129.54 0)
+		(at 175.26 129.54 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -2393,7 +2393,7 @@
 		(fields_autoplaced yes)
 		(uuid "33c853e6-d4e4-4278-94eb-6a42bdb9ba6d")
 		(property "Reference" "#PWR02"
-			(at 173.99 135.89 0)
+			(at 175.26 135.89 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2404,7 +2404,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 173.99 134.62 0)
+			(at 175.26 134.62 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2414,7 +2414,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 173.99 129.54 0)
+			(at 175.26 129.54 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2425,7 +2425,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 173.99 129.54 0)
+			(at 175.26 129.54 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2436,7 +2436,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 173.99 129.54 0)
+			(at 175.26 129.54 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2460,7 +2460,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 173.99 125.73 0)
+		(at 175.26 125.73 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -2471,7 +2471,7 @@
 		(fields_autoplaced yes)
 		(uuid "39ef4ed7-bb97-4837-95ae-88727e3f4237")
 		(property "Reference" "C2"
-			(at 177.8 124.4599 0)
+			(at 179.07 124.4599 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2482,7 +2482,7 @@
 			)
 		)
 		(property "Value" "33 pF"
-			(at 177.8 126.9999 0)
+			(at 179.07 126.9999 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2493,7 +2493,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
-			(at 174.9552 129.54 0)
+			(at 176.2252 129.54 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2504,7 +2504,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 173.99 125.73 0)
+			(at 175.26 125.73 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2515,7 +2515,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 173.99 125.73 0)
+			(at 175.26 125.73 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3237,7 +3237,7 @@
 	)
 	(symbol
 		(lib_id "Device:Crystal")
-		(at 165.1 118.11 0)
+		(at 166.37 118.11 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3248,7 +3248,7 @@
 		(fields_autoplaced yes)
 		(uuid "9c2a0b14-94a4-4641-aa47-553984c28a2d")
 		(property "Reference" "Y1"
-			(at 165.1 110.49 0)
+			(at 166.37 110.49 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3258,7 +3258,7 @@
 			)
 		)
 		(property "Value" "14.31818 MHz"
-			(at 165.1 113.03 0)
+			(at 166.37 113.03 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3268,7 +3268,7 @@
 			)
 		)
 		(property "Footprint" "Crystal:Crystal_HC49-U_Vertical"
-			(at 165.1 118.11 0)
+			(at 166.37 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3279,7 +3279,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 165.1 118.11 0)
+			(at 166.37 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3290,7 +3290,7 @@
 			)
 		)
 		(property "Description" "Two pin crystal"
-			(at 165.1 118.11 0)
+			(at 166.37 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

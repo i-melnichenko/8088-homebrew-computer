@@ -61,10 +61,10 @@
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
           "min_clearance": 0.0,
-          "min_island_area": 9.99999999996,
+          "min_island_area": 13.225798999962,
           "min_thickness": 0.25,
           "pad_connection": 1,
-          "remove_islands": 1,
+          "remove_islands": 2,
           "thermal_relief_gap": 0.5,
           "thermal_relief_spoke_width": 0.5
         }
@@ -728,7 +728,7 @@
         "uuid": "15ce4f45-6f32-456e-874c-aac11293789a"
       }
     ],
-    "used_designators": "#FLG1-2,J1-4,H1-4,R1-17,JP1,#PWR1-101,D1-10,Y1,TP1,C1-19,SW1,U1-15,TP_GND1,J_DEBUG1",
+    "used_designators": "#FLG1-2,J1-4,H1-4,R1-17,JP1,TP_GND1,U1-15,SW1,C1-19,D1-10,#PWR1-101,Y1,TP1,J_DEBUG1",
     "variants": []
   },
   "sheets": [
@@ -761,12 +761,12 @@
       "RAM"
     ],
     [
-      "ebe9c382-ae79-41d1-a194-9ab02a890fa3",
-      "EXPANSION_CONNECTOR"
-    ],
-    [
       "84282b2b-43ee-46fa-876b-fa0b647a45d9",
       "LED_PANEL"
+    ],
+    [
+      "ebe9c382-ae79-41d1-a194-9ab02a890fa3",
+      "EXPANSION_CONNECTOR"
     ],
     [
       "e9d836d6-3c3a-4b6e-a562-389c64894272",

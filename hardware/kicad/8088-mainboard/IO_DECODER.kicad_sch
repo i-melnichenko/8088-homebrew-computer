@@ -960,6 +960,26 @@
 	)
 	(wire
 		(pts
+			(xy 139.7762 35.6362) (xy 142.3162 35.6362)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3fb144f8-fb46-4dac-9fd2-5dd5bc1ce794")
+	)
+	(wire
+		(pts
+			(xy 0.0762 0.0762) (xy 139.7762 0.0762)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "486dfcb9-6a4b-4191-9862-3cea989bd94c")
+	)
+	(wire
+		(pts
 			(xy 124.46 62.23) (xy 124.46 67.31)
 		)
 		(stroke
@@ -987,6 +1007,16 @@
 			(type default)
 		)
 		(uuid "820e5401-7311-44db-87ea-173a0227eacb")
+	)
+	(wire
+		(pts
+			(xy 139.7762 0.0762) (xy 139.7762 35.6362)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "896ec503-3b09-484f-b135-8134ddb35dad")
 	)
 	(wire
 		(pts
@@ -1072,7 +1102,7 @@
 		(uuid "af5f549e-b702-4878-949b-66089e8a4047")
 	)
 	(hierarchical_label "IO_EXP1_CS"
-		(shape input)
+		(shape output)
 		(at 151.13 93.98 0)
 		(effects
 			(font
@@ -1083,7 +1113,7 @@
 		(uuid "b8a88bd1-ef95-4319-807a-c94ae1c7ffff")
 	)
 	(hierarchical_label "IO_EXP0_CS"
-		(shape input)
+		(shape output)
 		(at 151.13 91.44 0)
 		(effects
 			(font
@@ -1094,7 +1124,7 @@
 		(uuid "c5918250-2cb2-4950-b7fb-56a577a686b1")
 	)
 	(hierarchical_label "LED_PANEL_CS"
-		(shape input)
+		(shape output)
 		(at 151.13 78.74 0)
 		(effects
 			(font
