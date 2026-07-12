@@ -2560,6 +2560,17 @@
 		)
 		(uuid "2a140eb3-5fbc-4562-ad11-2ac295dda669")
 	)
+	(hierarchical_label "WR"
+		(shape input)
+		(at 210.82 104.14 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2b62d6f0-3d79-4e4f-a448-f811ea337652")
+	)
 	(hierarchical_label "D[0..7]"
 		(shape bidirectional)
 		(at 143.51 71.12 0)
@@ -2571,16 +2582,16 @@
 		)
 		(uuid "499bfdda-91ed-4278-a4e1-359c2de2032b")
 	)
-	(hierarchical_label "MRDC"
+	(hierarchical_label "RD"
 		(shape input)
-		(at 210.82 101.6 0)
+		(at 133.35 101.6 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "61cd70f2-8a91-42aa-b46e-ed9c20859f79")
+		(uuid "4f2a71d0-e110-444c-86fd-60bc8f23b3c9")
 	)
 	(hierarchical_label "RAM_BANK1_CS"
 		(shape input)
@@ -2593,18 +2604,7 @@
 		)
 		(uuid "6ccbce5e-e1ac-4aa6-a85a-3f5d0f8e78af")
 	)
-	(hierarchical_label "MWTC"
-		(shape input)
-		(at 210.82 104.14 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "81db3398-87b7-4894-b02b-54498e6f4f47")
-	)
-	(hierarchical_label "MWTC"
+	(hierarchical_label "WR"
 		(shape input)
 		(at 133.35 104.14 0)
 		(effects
@@ -2613,7 +2613,7 @@
 			)
 			(justify left)
 		)
-		(uuid "a4291ce6-8f4b-4934-9062-082c11678c61")
+		(uuid "8e9ba46d-2266-48f8-9c29-eba69bd41d68")
 	)
 	(hierarchical_label "RAM_BANK0_CS"
 		(shape input)
@@ -2626,16 +2626,16 @@
 		)
 		(uuid "b25ea12d-a98f-4f17-b465-98424349125b")
 	)
-	(hierarchical_label "MRDC"
+	(hierarchical_label "RD"
 		(shape input)
-		(at 133.35 101.6 0)
+		(at 210.82 101.6 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "c0e3ca25-faf9-4e50-80fa-adf6c22274cd")
+		(uuid "dfd822de-7019-418b-bf9f-0df5a3d5b150")
 	)
 	(symbol
 		(lib_id "power:GND")

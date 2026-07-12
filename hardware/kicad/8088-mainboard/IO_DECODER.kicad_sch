@@ -917,6 +917,10 @@
 		(uuid "1d8ac363-0801-484f-8f8a-86dc31fa7254")
 	)
 	(no_connect
+		(at 151.13 78.74)
+		(uuid "310e5e69-535f-443f-a382-e6279abc7b21")
+	)
+	(no_connect
 		(at 151.13 81.28)
 		(uuid "5d97e1eb-2937-439a-bd45-ccfc8024c887")
 	)
@@ -1038,6 +1042,17 @@
 		)
 		(uuid "d1e654cc-4bec-4324-b7b7-b07067a28961")
 	)
+	(hierarchical_label "IOM"
+		(shape input)
+		(at 111.76 91.44 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "2be1c35c-f76a-43b9-b438-aa13811dc341")
+	)
 	(hierarchical_label "A5"
 		(shape input)
 		(at 111.76 78.74 180)
@@ -1048,17 +1063,6 @@
 			(justify right)
 		)
 		(uuid "93f4369e-280b-467d-b958-b9aade7a7bd2")
-	)
-	(hierarchical_label "IO_DEC_EN"
-		(shape input)
-		(at 111.76 91.44 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "af34e0f5-99ec-4654-87b6-22b55bd5ee39")
 	)
 	(hierarchical_label "A6"
 		(shape input)
@@ -1092,17 +1096,6 @@
 			(justify left)
 		)
 		(uuid "c5918250-2cb2-4950-b7fb-56a577a686b1")
-	)
-	(hierarchical_label "LED_PANEL_CS"
-		(shape output)
-		(at 151.13 78.74 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d8421fce-cf6c-45d2-9376-a59bce0aac92")
 	)
 	(hierarchical_label "A7"
 		(shape input)

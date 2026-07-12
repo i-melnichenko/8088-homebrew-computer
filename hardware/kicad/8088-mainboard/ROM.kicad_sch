@@ -1779,17 +1779,6 @@
 		)
 		(uuid "f293f003-9aa9-47cf-866f-1ddb398a0c64")
 	)
-	(hierarchical_label "MRDC"
-		(shape input)
-		(at 134.62 115.57 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "09dc169d-44f3-4d28-9b88-fdf23ae4d455")
-	)
 	(hierarchical_label "A[0..19]"
 		(shape input)
 		(at 114.3 67.31 180)
@@ -1811,6 +1800,17 @@
 			(justify left)
 		)
 		(uuid "a0f628ba-d9de-4b2e-8494-d5cdedf34b8b")
+	)
+	(hierarchical_label "RD"
+		(shape input)
+		(at 134.62 115.57 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ee60bf22-9b09-4dab-b49b-e53dc521cee3")
 	)
 	(hierarchical_label "ROM_CS"
 		(shape input)

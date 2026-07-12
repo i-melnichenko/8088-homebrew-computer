@@ -2653,7 +2653,7 @@
 		)
 		(uuid "a182e005-f542-4866-84d3-e3f2030bd108")
 	)
-	(hierarchical_label "IOWC"
+	(hierarchical_label "IOM"
 		(shape input)
 		(at 46.99 97.79 180)
 		(effects
@@ -2664,7 +2664,7 @@
 		)
 		(uuid "bea2a7c4-3b80-4c26-96ca-ac333e4a522f")
 	)
-	(hierarchical_label "IOWC"
+	(hierarchical_label "IOM"
 		(shape input)
 		(at 46.99 92.71 180)
 		(effects
