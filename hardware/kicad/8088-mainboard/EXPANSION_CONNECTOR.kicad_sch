@@ -1520,14 +1520,6 @@
 			(embedded_fonts no)
 		)
 	)
-	(no_connect
-		(at 91.44 116.84)
-		(uuid "59a73159-8ca2-411c-ae4a-a7ffb41b95b1")
-	)
-	(no_connect
-		(at 172.72 115.57)
-		(uuid "94a5787b-d910-4e82-a8bf-d4288e103318")
-	)
 	(bus_entry
 		(at 152.4 168.91)
 		(size -2.54 -2.54)
@@ -2352,16 +2344,6 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 121.92) (xy 78.74 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9f62816a-4f92-4147-b983-893a104f3b98")
-	)
-	(wire
-		(pts
 			(xy 154.94 105.41) (xy 160.02 105.41)
 		)
 		(stroke
@@ -2449,16 +2431,6 @@
 			(type default)
 		)
 		(uuid "b19a4638-2e6f-4278-ace0-d1a106c3bd8b")
-	)
-	(wire
-		(pts
-			(xy 138.43 120.65) (xy 160.02 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b7550202-80e0-4803-8b72-15764d74b456")
 	)
 	(wire
 		(pts
@@ -3560,6 +3532,17 @@
 		)
 		(uuid "ffd1b041-b7f4-45bc-a55e-019eecc47a61")
 	)
+	(hierarchical_label "RDY"
+		(shape bidirectional)
+		(at 91.44 116.84 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "05fca0df-1bbd-4280-826f-0b4070631f64")
+	)
 	(hierarchical_label "IOM"
 		(shape input)
 		(at 78.74 114.3 180)
@@ -3581,6 +3564,17 @@
 			(justify right)
 		)
 		(uuid "27421858-c770-4d4e-9890-9c374d0d9743")
+	)
+	(hierarchical_label "CLK"
+		(shape input)
+		(at 172.72 123.19 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "31f357c3-4c7e-4d1d-999f-cfd7af7105c1")
 	)
 	(hierarchical_label "D[0..7]"
 		(shape bidirectional)
@@ -3604,27 +3598,27 @@
 		)
 		(uuid "687d409f-53d2-4b8a-bafc-b8f0dd5a9280")
 	)
-	(hierarchical_label "MEM_EXP1_CS"
+	(hierarchical_label "CLK"
 		(shape input)
-		(at 172.72 123.19 0)
+		(at 91.44 124.46 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "6cc59a12-561b-4ab0-ab0d-969fa9d22a67")
+		(uuid "7ed1d2ca-d5ef-4ea8-8acb-85cb8e6ebe0b")
 	)
-	(hierarchical_label "IO_EXP1_CS"
+	(hierarchical_label "MEM_EXP1_CS"
 		(shape input)
-		(at 160.02 123.19 180)
+		(at 160.02 120.65 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "6f9baef1-246d-4761-8ce4-4a2729ee311f")
+		(uuid "8b5949fa-3cf0-44d9-8f84-a12968a8939a")
 	)
 	(hierarchical_label "ALE"
 		(shape input)
@@ -3636,6 +3630,17 @@
 			(justify left)
 		)
 		(uuid "99e40d35-b522-4492-a7ce-a9ee2caeec67")
+	)
+	(hierarchical_label "IO_EXP0_CS"
+		(shape input)
+		(at 91.44 121.92 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a4f75474-06d6-497c-8cb3-e610dc4208a8")
 	)
 	(hierarchical_label "RD"
 		(shape input)
@@ -3670,28 +3675,6 @@
 		)
 		(uuid "ae8626fe-485e-4cfb-a7da-4eb47ba3e71f")
 	)
-	(hierarchical_label "CLK"
-		(shape input)
-		(at 91.44 121.92 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "af60598b-f121-4474-90bb-c7d10d158c8c")
-	)
-	(hierarchical_label "IO_EXP0_CS"
-		(shape input)
-		(at 78.74 124.46 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "b2d620ea-8487-4dec-b632-76cb99857af6")
-	)
 	(hierarchical_label "A[0..19]"
 		(shape input)
 		(at 110.49 166.37 180)
@@ -3714,27 +3697,16 @@
 		)
 		(uuid "c9bce223-7f11-4c06-9b8d-1df9049a17bc")
 	)
-	(hierarchical_label "MEM_EXP0_CS"
-		(shape input)
-		(at 91.44 124.46 0)
+	(hierarchical_label "RDY"
+		(shape bidirectional)
+		(at 172.72 115.57 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "d52b95c8-8e50-474b-a093-479b61721596")
-	)
-	(hierarchical_label "CLK"
-		(shape input)
-		(at 172.72 120.65 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d69de0d8-ebb2-4863-9990-ed9c7874c99e")
+		(uuid "ca527393-c4ae-4481-9547-c5b7ebd4fab2")
 	)
 	(hierarchical_label "RD"
 		(shape input)
@@ -3758,6 +3730,28 @@
 		)
 		(uuid "e647877e-fc8f-40b5-af03-d471a7675bfa")
 	)
+	(hierarchical_label "IO_EXP1_CS"
+		(shape input)
+		(at 172.72 120.65 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f6221bb4-77c6-42e9-a5c9-0cad89f935cf")
+	)
+	(hierarchical_label "MEM_EXP0_CS"
+		(shape input)
+		(at 78.74 121.92 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "f7f63b75-e405-4b6b-bfd3-23dcfbe54513")
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 58.42 76.2 0)
@@ -3769,7 +3763,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "01823426-9846-442b-bb4c-3cb8b579c686")
-		(property "Reference" "#PWR057"
+		(property "Reference" "#PWR051"
 			(at 58.42 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -3830,7 +3824,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR057")
+					(reference "#PWR051")
 					(unit 1)
 				)
 			)
@@ -3847,7 +3841,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "27944d35-021d-43ea-a28e-08cd58e14f9a")
-		(property "Reference" "#PWR053"
+		(property "Reference" "#PWR052"
 			(at 91.44 72.39 0)
 			(hide yes)
 			(show_name no)
@@ -3907,7 +3901,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR053")
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -3924,7 +3918,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "64c1d06f-ee30-4928-b1e8-4d81c41c5e2d")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR054"
 			(at 139.7 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -3985,7 +3979,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR084")
+					(reference "#PWR054")
 					(unit 1)
 				)
 			)
@@ -4186,7 +4180,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 57.15 121.92 0)
+		(at 160.02 123.19 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4194,10 +4188,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a5de9c8c-0da8-4563-a04d-388a8a1d56b0")
-		(property "Reference" "#PWR087"
-			(at 57.15 128.27 0)
+		(uuid "7ccccd3f-d3d2-4453-98dd-8a2c669a5875")
+		(property "Reference" "#PWR053"
+			(at 160.02 129.54 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4208,7 +4201,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 59.69 123.1899 0)
+			(at 157.988 127 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4219,7 +4212,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 57.15 121.92 0)
+			(at 160.02 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4230,7 +4223,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 57.15 121.92 0)
+			(at 160.02 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4241,7 +4234,85 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 57.15 121.92 0)
+			(at 160.02 123.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "368e6913-d197-4b7e-a217-1620c8dfea94")
+		)
+		(instances
+			(project "8088-mainboard"
+				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 78.74 124.46 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a5de9c8c-0da8-4563-a04d-388a8a1d56b0")
+		(property "Reference" "#PWR050"
+			(at 78.74 130.81 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 76.708 128.27 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 78.74 124.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 78.74 124.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 78.74 124.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4257,86 +4328,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR087")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 138.43 120.65 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b1767202-3bb2-43bf-9236-66b2e2a97185")
-		(property "Reference" "#PWR083"
-			(at 138.43 127 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 140.97 121.9199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 138.43 120.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 138.43 120.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 138.43 120.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "4693cdbc-6611-400b-80a3-0cb04ec10f6b")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR083")
+					(reference "#PWR050")
 					(unit 1)
 				)
 			)
@@ -4546,7 +4538,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d11649e1-5e24-495f-88f8-54dc679e7991")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR055"
 			(at 172.72 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -4606,7 +4598,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/ebe9c382-ae79-41d1-a194-9ab02a890fa3"
-					(reference "#PWR085")
+					(reference "#PWR055")
 					(unit 1)
 				)
 			)

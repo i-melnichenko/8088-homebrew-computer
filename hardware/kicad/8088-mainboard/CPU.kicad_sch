@@ -5189,7 +5189,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0e238ac1-b76d-42e3-b314-57908c4c1c9c")
-		(property "Reference" "#PWR099"
+		(property "Reference" "#PWR01"
 			(at 21.59 69.85 0)
 			(hide yes)
 			(show_name no)
@@ -5250,7 +5250,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR099")
+					(reference "#PWR01")
 					(unit 1)
 				)
 			)
@@ -5268,7 +5268,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "10550f12-c785-42b0-8252-f8153ecf19c6")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR02"
 			(at 21.59 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -5329,7 +5329,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR069")
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -5347,7 +5347,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "142878e5-69ad-4e4b-963c-bfa5772a9c79")
-		(property "Reference" "U3"
+		(property "Reference" "U2"
 			(at 104.648 30.734 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5367,7 +5367,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
+		(property "Footprint" "Package_DIP:DIP-20_W7.62mm_Socket"
 			(at 111.76 50.8 0)
 			(hide yes)
 			(show_name no)
@@ -5463,7 +5463,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "U3")
+					(reference "U2")
 					(unit 1)
 				)
 			)
@@ -5481,7 +5481,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "17bcde00-e35f-4d90-bc62-90c3d55446ec")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR011"
 			(at 111.76 76.2 0)
 			(hide yes)
 			(show_name no)
@@ -5541,7 +5541,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR017")
+					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -5559,7 +5559,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2bea99db-d2e7-4b7c-bd74-3c230ea94bab")
-		(property "Reference" "#PWR019"
+		(property "Reference" "#PWR010"
 			(at 111.76 29.21 0)
 			(hide yes)
 			(show_name no)
@@ -5620,7 +5620,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR019")
+					(reference "#PWR010")
 					(unit 1)
 				)
 			)
@@ -5638,7 +5638,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2beef0b2-0731-4a63-86fc-047f1fb9487c")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR016"
 			(at 124.46 76.2 0)
 			(hide yes)
 			(show_name no)
@@ -5698,7 +5698,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR015")
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -5716,7 +5716,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "358c42ac-ba08-4379-948c-c54173af9305")
-		(property "Reference" "#PWR07"
+		(property "Reference" "#PWR08"
 			(at 45.72 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -5776,7 +5776,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR07")
+					(reference "#PWR08")
 					(unit 1)
 				)
 			)
@@ -5794,7 +5794,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3802a59a-0b4e-4a88-93f8-3a7fefb995ce")
-		(property "Reference" "C18"
+		(property "Reference" "C3"
 			(at 114.808 88.9 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5858,7 +5858,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "C18")
+					(reference "C3")
 					(unit 1)
 				)
 			)
@@ -5877,7 +5877,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3874a95f-6902-4774-a5d7-484de529716e")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR020"
 			(at 172.72 31.75 0)
 			(hide yes)
 			(show_name no)
@@ -5937,7 +5937,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR025")
+					(reference "#PWR020")
 					(unit 1)
 				)
 			)
@@ -5955,7 +5955,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3b706796-2009-4efd-a1bd-bf58275e804d")
-		(property "Reference" "C8"
+		(property "Reference" "C1"
 			(at 49.276 35.306 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6019,7 +6019,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "C8")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -6038,7 +6038,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "425238dd-9887-4a0d-a825-3938dd475881")
-		(property "Reference" "#PWR055"
+		(property "Reference" "#PWR015"
 			(at 125.73 93.98 0)
 			(hide yes)
 			(show_name no)
@@ -6098,7 +6098,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR055")
+					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -6138,7 +6138,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-40_W15.24mm"
+		(property "Footprint" "Package_DIP:DIP-40_W15.24mm_Socket"
 			(at 46.99 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -6314,7 +6314,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "4bab6bb7-bfef-40d7-b925-a3f7e8a38eba")
-		(property "Reference" "#PWR029"
+		(property "Reference" "#PWR012"
 			(at 111.76 92.71 0)
 			(hide yes)
 			(show_name no)
@@ -6375,7 +6375,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR029")
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)
@@ -6393,7 +6393,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4fb89e0c-e573-4d65-a26e-b7b79893f4ab")
-		(property "Reference" "C6"
+		(property "Reference" "C2"
 			(at 115.062 25.146 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6457,7 +6457,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "C6")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -6476,7 +6476,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5e29e760-2bd9-4ab4-93c4-e7bea84755bb")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR018"
 			(at 158.75 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -6537,7 +6537,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR024")
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
@@ -6555,7 +6555,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "753efcbc-16de-43ef-8fe0-452ec091baca")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR04"
 			(at 21.59 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -6616,7 +6616,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR074")
+					(reference "#PWR04")
 					(unit 1)
 				)
 			)
@@ -6634,7 +6634,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7b90e31f-e985-47f6-8b77-10bbaf6887f8")
-		(property "Reference" "#PWR030"
+		(property "Reference" "#PWR05"
 			(at 31.75 105.41 0)
 			(hide yes)
 			(show_name no)
@@ -6695,7 +6695,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR030")
+					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -6713,7 +6713,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9c6ce8fc-7ccc-4c78-9fba-db5eb42000d7")
-		(property "Reference" "#PWR054"
+		(property "Reference" "#PWR013"
 			(at 111.76 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -6773,7 +6773,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR054")
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -6792,7 +6792,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a0148d10-cf33-456a-ae40-8dc6fdcf003a")
-		(property "Reference" "#PWR023"
+		(property "Reference" "#PWR019"
 			(at 158.75 78.74 0)
 			(hide yes)
 			(show_name no)
@@ -6852,7 +6852,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR023")
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
@@ -6870,7 +6870,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "aa90b38d-0e86-4f53-a8f4-522ade241079")
-		(property "Reference" "#PWR026"
+		(property "Reference" "#PWR07"
 			(at 45.72 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -6931,7 +6931,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR026")
+					(reference "#PWR07")
 					(unit 1)
 				)
 			)
@@ -6950,7 +6950,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b85cd48a-c98a-41b5-b03e-efd5aa1453d0")
-		(property "Reference" "#PWR022"
+		(property "Reference" "#PWR014"
 			(at 125.73 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -7010,7 +7010,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR022")
+					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -7028,7 +7028,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c3622589-d33d-45b9-9eff-fa6e53091d5f")
-		(property "Reference" "#PWR092"
+		(property "Reference" "#PWR017"
 			(at 124.46 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -7088,7 +7088,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR092")
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -7107,29 +7107,29 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d70e0f68-5f99-476d-9179-00b7b39ba4ed")
-		(property "Reference" "U5"
-			(at 156.6067 31.75 0)
+		(property "Reference" "U4"
+			(at 161.8681 31.75 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "74LS245"
-			(at 156.6067 34.29 0)
+			(at 161.8681 34.29 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
+		(property "Footprint" "Package_DIP:DIP-20_W7.62mm_Socket"
 			(at 158.75 52.07 0)
 			(hide yes)
 			(show_name no)
@@ -7225,7 +7225,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "U5")
+					(reference "U4")
 					(unit 1)
 				)
 			)
@@ -7243,7 +7243,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "dd9ba4c7-0d63-419f-b076-9d6887d34cdd")
-		(property "Reference" "J_DEBUG1"
+		(property "Reference" "J1"
 			(at 40.64 180.3399 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7254,7 +7254,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "DEBUG"
+		(property "Value" "Conn_01x10"
 			(at 40.64 181.6099 0)
 			(hide yes)
 			(show_name no)
@@ -7332,7 +7332,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "J_DEBUG1")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -7350,7 +7350,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e18ffa45-921c-40f0-a4b3-061dbeb80931")
-		(property "Reference" "#PWR027"
+		(property "Reference" "#PWR09"
 			(at 59.69 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -7410,7 +7410,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR027")
+					(reference "#PWR09")
 					(unit 1)
 				)
 			)
@@ -7428,7 +7428,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ec6a99c1-58e4-4a89-84f0-d39dd266231b")
-		(property "Reference" "#PWR070"
+		(property "Reference" "#PWR03"
 			(at 21.59 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -7489,7 +7489,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR070")
+					(reference "#PWR03")
 					(unit 1)
 				)
 			)
@@ -7507,7 +7507,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ede05ae8-f5ab-4b7a-86a4-dad3dfb66fdf")
-		(property "Reference" "U14"
+		(property "Reference" "U3"
 			(at 104.648 94.234 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7527,7 +7527,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
+		(property "Footprint" "Package_DIP:DIP-20_W7.62mm_Socket"
 			(at 111.76 114.3 0)
 			(hide yes)
 			(show_name no)
@@ -7623,7 +7623,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "U14")
+					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -7641,7 +7641,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f18ad30f-9cf9-4ddf-890a-fa61047adf4d")
-		(property "Reference" "#PWR086"
+		(property "Reference" "#PWR06"
 			(at 26.67 168.91 0)
 			(hide yes)
 			(show_name no)
@@ -7702,7 +7702,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "#PWR086")
+					(reference "#PWR06")
 					(unit 1)
 				)
 			)
@@ -7720,7 +7720,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ff91881e-fcc8-4656-b79c-bd4d6fc0d658")
-		(property "Reference" "C7"
+		(property "Reference" "C4"
 			(at 162.814 25.908 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7784,7 +7784,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/dbef7d6e-3f6a-4cd2-929f-be1870a59a13"
-					(reference "C7")
+					(reference "C4")
 					(unit 1)
 				)
 			)
