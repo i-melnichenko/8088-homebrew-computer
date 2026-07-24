@@ -55,4 +55,4 @@ For ICs, sockets are recommended; the PCB footprints already provide for them.
 
 ## Links
 
-- [DIY EEPROM Programmer](https://medium.com/@erikvanzijst/diy-eeprom-programmer-4fd11a486ea)
+- [DIY EEPROM Programmer](https://github.com/erikvanzijst/eeprom)
