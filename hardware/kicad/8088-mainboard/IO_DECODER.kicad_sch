@@ -917,6 +917,10 @@
 		(uuid "1d8ac363-0801-484f-8f8a-86dc31fa7254")
 	)
 	(no_connect
+		(at 151.13 78.74)
+		(uuid "310e5e69-535f-443f-a382-e6279abc7b21")
+	)
+	(no_connect
 		(at 151.13 81.28)
 		(uuid "5d97e1eb-2937-439a-bd45-ccfc8024c887")
 	)
@@ -1038,6 +1042,17 @@
 		)
 		(uuid "d1e654cc-4bec-4324-b7b7-b07067a28961")
 	)
+	(hierarchical_label "IOM"
+		(shape input)
+		(at 111.76 91.44 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "2be1c35c-f76a-43b9-b438-aa13811dc341")
+	)
 	(hierarchical_label "A5"
 		(shape input)
 		(at 111.76 78.74 180)
@@ -1048,17 +1063,6 @@
 			(justify right)
 		)
 		(uuid "93f4369e-280b-467d-b958-b9aade7a7bd2")
-	)
-	(hierarchical_label "IO_DEC_EN"
-		(shape input)
-		(at 111.76 91.44 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "af34e0f5-99ec-4654-87b6-22b55bd5ee39")
 	)
 	(hierarchical_label "A6"
 		(shape input)
@@ -1093,17 +1097,6 @@
 		)
 		(uuid "c5918250-2cb2-4950-b7fb-56a577a686b1")
 	)
-	(hierarchical_label "LED_PANEL_CS"
-		(shape output)
-		(at 151.13 78.74 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d8421fce-cf6c-45d2-9376-a59bce0aac92")
-	)
 	(hierarchical_label "A7"
 		(shape input)
 		(at 111.76 83.82 180)
@@ -1127,7 +1120,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "462f17e1-99a5-4657-bc1c-82a8a983e49c")
-		(property "Reference" "#PWR077"
+		(property "Reference" "#PWR040"
 			(at 106.68 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -1187,7 +1180,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR077")
+					(reference "#PWR040")
 					(unit 1)
 				)
 			)
@@ -1204,7 +1197,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "50be41b6-d1cd-4ed8-a7df-a405340e33b0")
-		(property "Reference" "U12"
+		(property "Reference" "U7"
 			(at 126.492 71.374 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1226,7 +1219,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
+		(property "Footprint" "Package_DIP:DIP-16_W7.62mm_Socket"
 			(at 124.46 86.36 0)
 			(hide yes)
 			(show_name no)
@@ -1310,7 +1303,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "U12")
+					(reference "U7")
 					(unit 1)
 				)
 			)
@@ -1327,7 +1320,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9625718f-b369-43c7-ba8e-37d85afbc2b8")
-		(property "Reference" "#PWR078"
+		(property "Reference" "#PWR041"
 			(at 124.46 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -1388,7 +1381,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR078")
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -1406,7 +1399,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9b85bd7f-a77d-47e8-a13b-def71520e89a")
-		(property "Reference" "#PWR079"
+		(property "Reference" "#PWR042"
 			(at 124.46 110.49 0)
 			(hide yes)
 			(show_name no)
@@ -1466,7 +1459,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR079")
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -1484,7 +1477,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b2298915-a602-4630-b3f6-660e0389c9ca")
-		(property "Reference" "#PWR076"
+		(property "Reference" "#PWR039"
 			(at 105.41 96.52 0)
 			(hide yes)
 			(show_name no)
@@ -1545,7 +1538,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR076")
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -1562,7 +1555,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "caa6e4d3-1c8d-48a2-9a5e-ebf8dc57d5b0")
-		(property "Reference" "C16"
+		(property "Reference" "C10"
 			(at 116.84 61.214 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1626,7 +1619,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "C16")
+					(reference "C10")
 					(unit 1)
 				)
 			)
@@ -1644,7 +1637,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cce09e9b-8b25-4cd5-8e9c-b6c247372196")
-		(property "Reference" "#PWR075"
+		(property "Reference" "#PWR038"
 			(at 105.41 93.98 0)
 			(hide yes)
 			(show_name no)
@@ -1705,7 +1698,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR075")
+					(reference "#PWR038")
 					(unit 1)
 				)
 			)

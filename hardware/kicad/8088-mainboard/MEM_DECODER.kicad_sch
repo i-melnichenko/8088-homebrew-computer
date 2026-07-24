@@ -920,6 +920,10 @@
 		(at 121.92 66.04)
 		(uuid "4fe28a71-26cf-43f9-bbce-66e65f36a2a6")
 	)
+	(no_connect
+		(at 121.92 60.96)
+		(uuid "f9c8eaf5-4980-4851-aceb-4c6acc1d3f74")
+	)
 	(wire
 		(pts
 			(xy 121.92 60.96) (xy 101.6 60.96)
@@ -982,6 +986,16 @@
 	)
 	(wire
 		(pts
+			(xy 63.5 71.12) (xy 76.2 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c6b1c60-3583-4838-9d80-1fe0e0772bcb")
+	)
+	(wire
+		(pts
 			(xy 85.09 46.99) (xy 88.9 46.99)
 		)
 		(stroke
@@ -1030,17 +1044,6 @@
 		)
 		(uuid "e1b92a7d-4dcf-4e06-b4f5-c2da71a8d03f")
 	)
-	(hierarchical_label "MEM_DEC_EN"
-		(shape input)
-		(at 76.2 71.12 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "2c1b26aa-2162-426b-be16-6aa8a91d904f")
-	)
 	(hierarchical_label "A17"
 		(shape input)
 		(at 76.2 58.42 180)
@@ -1073,17 +1076,6 @@
 			(justify right)
 		)
 		(uuid "52fca38d-e1a9-4d34-adc8-cc7844fda3ad")
-	)
-	(hierarchical_label "RAM_BANK1_CS"
-		(shape output)
-		(at 121.92 60.96 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "575fca83-c18a-4c25-a19f-186741b0abca")
 	)
 	(hierarchical_label "MEM_EXP1_CS"
 		(shape output)
@@ -1129,6 +1121,17 @@
 		)
 		(uuid "b3aabd4a-9ffc-4296-af24-5a75df3bbfd3")
 	)
+	(hierarchical_label "IOM"
+		(shape input)
+		(at 76.2 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c901106b-5f2c-473b-b963-80e58537eafa")
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 81.28 46.99 270)
@@ -1140,7 +1143,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0c7a4be0-07e3-4b03-a3d9-873d6742bbc5")
-		(property "Reference" "C10"
+		(property "Reference" "C9"
 			(at 81.28 40.894 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1204,7 +1207,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "C10")
+					(reference "C9")
 					(unit 1)
 				)
 			)
@@ -1222,7 +1225,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1bd6c473-0d92-4109-ba3b-49f00c5c4644")
-		(property "Reference" "#PWR040"
+		(property "Reference" "#PWR034"
 			(at 69.85 73.66 0)
 			(hide yes)
 			(show_name no)
@@ -1283,15 +1286,15 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR040")
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 76.2 76.2 270)
+		(lib_id "power:VCC")
+		(at 63.5 71.12 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1299,10 +1302,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "46daeadc-3972-45d1-b137-6c97904ad46a")
-		(property "Reference" "#PWR041"
-			(at 69.85 76.2 0)
+		(uuid "847aad66-08d9-4778-a1d1-cd6b73f95d25")
+		(property "Reference" "#PWR033"
+			(at 63.5 74.93 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1312,19 +1314,19 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 72.39 76.1999 90)
+		(property "Value" "VCC"
+			(at 63.5 68.072 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
-			(at 76.2 76.2 0)
+			(at 63.5 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1335,7 +1337,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 76.2 76.2 0)
+			(at 63.5 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1345,8 +1347,8 @@
 				)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 76.2 76.2 0)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 63.5 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1357,12 +1359,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "aeff1719-24a0-49bf-90ca-afb1d4c43195")
+			(uuid "e06116d7-dee2-4f71-85f9-dc13040d593b")
 		)
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR041")
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)
@@ -1379,7 +1381,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ada5a4d3-394b-4d77-a39d-994789f0ca1f")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR036"
 			(at 88.9 45.72 0)
 			(hide yes)
 			(show_name no)
@@ -1440,7 +1442,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR037")
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -1458,7 +1460,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cc08dfce-a423-4e15-8149-04d81443aedd")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR035"
 			(at 71.12 46.99 0)
 			(hide yes)
 			(show_name no)
@@ -1518,7 +1520,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR038")
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
@@ -1536,7 +1538,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "de7d85b6-6945-44c4-bd99-762b34d73d71")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR037"
 			(at 88.9 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -1596,7 +1598,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR036")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -1613,7 +1615,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "efcc2dfa-6d43-49bf-9a0a-b4fb87fe0421")
-		(property "Reference" "U7"
+		(property "Reference" "U6"
 			(at 90.932 51.054 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1635,7 +1637,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
+		(property "Footprint" "Package_DIP:DIP-16_W7.62mm_Socket"
 			(at 88.9 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -1719,7 +1721,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "U7")
+					(reference "U6")
 					(unit 1)
 				)
 			)
