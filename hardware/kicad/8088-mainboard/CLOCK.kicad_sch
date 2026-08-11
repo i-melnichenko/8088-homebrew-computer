@@ -2145,12 +2145,6 @@
 		(uuid "c640fbaf-8744-42da-a0b3-514602b3dddd")
 	)
 	(junction
-		(at 207.01 88.9)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "cf9e14b0-fd28-4504-a1b1-8845d788810d")
-	)
-	(junction
 		(at 167.64 43.18)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2161,12 +2155,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "df5cb430-8991-4a78-a97f-ddbb90f3076a")
-	)
-	(junction
-		(at 189.23 88.9)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "e745adcd-5157-4bca-a8cb-6b30f4f34081")
 	)
 	(junction
 		(at 148.59 76.2)
@@ -2330,16 +2318,6 @@
 	)
 	(wire
 		(pts
-			(xy 207.01 88.9) (xy 207.01 92.71)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "633df3bf-7b1e-4784-953a-78a4fbf65cc3")
-	)
-	(wire
-		(pts
 			(xy 156.21 120.65) (xy 156.21 121.92)
 		)
 		(stroke
@@ -2347,16 +2325,6 @@
 			(type default)
 		)
 		(uuid "6e184887-763b-47c8-81ee-61bab69c2d19")
-	)
-	(wire
-		(pts
-			(xy 189.23 88.9) (xy 189.23 92.71)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "73e70cec-f268-4e43-9e13-7a8d52a66aa1")
 	)
 	(wire
 		(pts
@@ -3259,166 +3227,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 207.01 100.33 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "33c853e6-d4e4-4278-94eb-6a42bdb9ba6d")
-		(property "Reference" "#PWR031"
-			(at 207.01 106.68 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 207.01 105.41 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 207.01 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 207.01 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 207.01 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "9f668465-d9d4-4752-8674-13c399d33c4a")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
-					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 207.01 96.52 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "39ef4ed7-bb97-4837-95ae-88727e3f4237")
-		(property "Reference" "C8"
-			(at 210.82 95.2499 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "33 pF"
-			(at 210.82 97.7899 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
-			(at 207.9752 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 207.01 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 207.01 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "2844cbb4-fed8-4921-979d-d18eebe3f479")
-		)
-		(pin "2"
-			(uuid "390566d6-5efe-428b-8298-3454505cbddf")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
-					(reference "C8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Timer:8284")
 		(at 167.64 66.04 0)
 		(unit 1)
@@ -4035,84 +3843,6 @@
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
 					(reference "#PWR023")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 189.23 100.33 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7765bf63-fe16-4b24-9977-515b373d84aa")
-		(property "Reference" "#PWR030"
-			(at 189.23 106.68 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 189.23 105.41 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 189.23 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 189.23 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 189.23 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "14d6c5d6-6b25-4a66-89fc-7a34f5e28bb9")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
-					(reference "#PWR030")
 					(unit 1)
 				)
 			)
@@ -5374,88 +5104,6 @@
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
 					(reference "C5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 189.23 96.52 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e70fc17f-4611-4c20-b529-6a3f6fdd628c")
-		(property "Reference" "C7"
-			(at 193.04 95.2499 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "33 pF"
-			(at 193.04 97.7899 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
-			(at 190.1952 100.33 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 189.23 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 189.23 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "a8573443-f379-4e58-8ed9-623f047ff572")
-		)
-		(pin "2"
-			(uuid "f9f48149-0c36-4afb-8528-bdb41544640a")
-		)
-		(instances
-			(project "8088-mainboard"
-				(path "/15ce4f45-6f32-456e-874c-aac11293789a/0102c410-4d59-463b-9fef-d4756d1e22b7"
-					(reference "C7")
 					(unit 1)
 				)
 			)

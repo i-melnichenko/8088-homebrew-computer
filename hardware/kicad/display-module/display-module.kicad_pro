@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 3.2,
-          "height": 6.4,
-          "width": 6.4
+          "drill": 0.8,
+          "height": 1.27,
+          "width": 1.27
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -60,8 +60,8 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.0,
-          "min_island_area": 3.0,
+          "min_clearance": 0.5,
+          "min_island_area": 10.0,
           "min_thickness": 0.25,
           "pad_connection": 1,
           "remove_islands": 0,
@@ -69,13 +69,7 @@
           "thermal_relief_spoke_width": 0.5
         }
       },
-      "diff_pair_dimensions": [
-        {
-          "gap": 0.0,
-          "via_gap": 0.0,
-          "width": 0.0
-        }
-      ],
+      "diff_pair_dimensions": [],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -120,9 +114,9 @@
         "padstack": "warning",
         "pth_inside_courtyard": "error",
         "shorting_items": "error",
-        "silk_edge_clearance": "ignore",
-        "silk_over_copper": "ignore",
-        "silk_overlap": "ignore",
+        "silk_edge_clearance": "warning",
+        "silk_over_copper": "warning",
+        "silk_overlap": "warning",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
@@ -146,8 +140,8 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.25,
-        "min_connection": 0.25,
+        "min_clearance": 0.0,
+        "min_connection": 0.0,
         "min_copper_edge_clearance": 0.5,
         "min_groove_width": 0.0,
         "min_hole_clearance": 0.25,
@@ -158,10 +152,10 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.4,
-        "min_track_width": 0.25,
-        "min_via_annular_width": 0.2,
-        "min_via_diameter": 0.8,
+        "min_through_hole_diameter": 0.3,
+        "min_track_width": 0.2,
+        "min_via_annular_width": 0.1,
+        "min_via_diameter": 0.5,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -209,13 +203,7 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [
-        0.0,
-        0.25,
-        0.3,
-        0.6,
-        1.0
-      ],
+      "track_widths": [],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -242,24 +230,7 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [
-        {
-          "diameter": 0.0,
-          "drill": 0.0
-        },
-        {
-          "diameter": 0.8,
-          "drill": 0.4
-        },
-        {
-          "diameter": 1.0,
-          "drill": 0.5
-        },
-        {
-          "diameter": 1.2,
-          "drill": 0.6
-        }
-      ],
+      "via_dimensions": [],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -517,14 +488,14 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "8088-mainboard.kicad_pro",
+    "filename": "display-module.kicad_pro",
     "version": 3
   },
   "net_settings": {
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.25,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -535,37 +506,11 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.3,
+        "track_width": 0.2,
         "tuning_profile": "",
-        "via_diameter": 0.8,
-        "via_drill": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
         "wire_width": 6
-      },
-      {
-        "clearance": 0.25,
-        "diff_pair_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "Bus",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 0,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.3,
-        "tuning_profile": "",
-        "via_diameter": 0.8,
-        "via_drill": 0.4
-      },
-      {
-        "clearance": 0.25,
-        "name": "Power",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 1,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.8,
-        "tuning_profile": "",
-        "via_diameter": 1.2,
-        "via_drill": 0.6
       }
     ],
     "meta": {
@@ -573,34 +518,13 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": [
-      {
-        "netclass": "Power",
-        "pattern": "GND"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "VCC"
-      },
-      {
-        "netclass": "Bus",
-        "pattern": "/A*"
-      },
-      {
-        "netclass": "Default",
-        "pattern": "/D*"
-      },
-      {
-        "netclass": "Default",
-        "pattern": "Net-(J1-Pin_1)"
-      }
-    ]
+    "netclass_patterns": []
   },
   "pcbnew": {
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "../../../manufacturing/8088-mainboard/rev1.0/",
+      "plot": "",
       "specctra_dsn": "",
       "vrml": ""
     },
@@ -727,50 +651,18 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "8088-mainboard.kicad_sch",
-        "name": "Root",
-        "uuid": "15ce4f45-6f32-456e-874c-aac11293789a"
+        "filename": "display-module.kicad_sch",
+        "name": "display-module",
+        "uuid": "93e98e2f-7715-4b60-8647-9321c0405f9b"
       }
     ],
-    "used_designators": "NT1,J1-5,#FLG1-2,Q1,C1-19,U1-15,SW1-3,TP_GND1,H1-4,R1-17,JP1-2,D1-10,#PWR1-101,Y1,TP1,J_DEBUG1",
+    "used_designators": "RV1,R2,C2-3,#PWR10-16,#PWR50-65,J2,U1-2,DS1",
     "variants": []
   },
   "sheets": [
     [
-      "15ce4f45-6f32-456e-874c-aac11293789a",
-      "Root"
-    ],
-    [
-      "dbef7d6e-3f6a-4cd2-929f-be1870a59a13",
-      "CPU"
-    ],
-    [
-      "0102c410-4d59-463b-9fef-d4756d1e22b7",
-      "CLOCK"
-    ],
-    [
-      "8603fecf-1343-4cbc-8a43-8cc8a41e8f5f",
-      "MEM_DECODER"
-    ],
-    [
-      "c64b3a1d-9cdf-4d26-8a62-60cbadd711b0",
-      "IO_DECODER"
-    ],
-    [
-      "ab02926d-0ef6-4450-b8f0-24a52f381100",
-      "ROM"
-    ],
-    [
-      "231c4f71-d904-43d6-919c-70292a45994a",
-      "RAM"
-    ],
-    [
-      "ebe9c382-ae79-41d1-a194-9ab02a890fa3",
-      "EXPANSION_CONNECTOR"
-    ],
-    [
-      "e9d836d6-3c3a-4b6e-a562-389c64894272",
-      "POWER"
+      "93e98e2f-7715-4b60-8647-9321c0405f9b",
+      "display-module"
     ]
   ],
   "text_variables": {},

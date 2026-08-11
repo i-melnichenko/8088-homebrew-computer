@@ -10,6 +10,12 @@ through-hole DIP components and a custom expansion architecture.
 The project is developed incrementally, starting with a minimal working
 system and gradually adding new hardware and software capabilities.
 
+## Firmware examples
+
+The first public ROM example is the [LCD status demo](firmware/8088-mainboard/).
+It builds a 32 KiB EEPROM image that initializes an HD44780-compatible 20x4
+LCD on `Exp1`, displays system status, and updates a heartbeat spinner.
+
 ## Mainboard Rev. 1.0
 
 | Front | Back |
@@ -38,7 +44,6 @@ components are through-hole.
 | R4 | 1 | 2 kΩ | DIN0207 axial, 7.62 mm pitch |
 | R6 | 1 | 1 kΩ | DIN0207 axial, 7.62 mm pitch |
 | C1–C4, C6, C9–C12 | 9 | 100 nF ceramic | Disc capacitor, 5.00 mm pitch |
-| C7, C8 | 2 | 33 pF ceramic | Disc capacitor, 5.00 mm pitch |
 | C5 | 1 | 10 µF electrolytic | Radial, 1.50 mm pitch |
 | C13 | 1 | 220 µF electrolytic | Radial, 2.00 mm pitch |
 | D1 | 1 | Power LED | 3 mm THT LED |
