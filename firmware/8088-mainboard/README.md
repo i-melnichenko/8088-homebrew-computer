@@ -1,8 +1,9 @@
-# LCD Status Demo
+# ROM BIOS and LCD Status Demo
 
-This is a standalone ROM demo for the 8088 Homebrew Computer. It initializes
-an HD44780-compatible 20x4 LCD attached to the `Exp1` connector, displays a
-four-line status screen, and animates the final character as a heartbeat.
+The default firmware is a minimal ROM BIOS for the 8088 Homebrew Computer. It
+initializes an HD44780-compatible 20x4 LCD attached to `Exp1`, reports its
+progress, copies an embedded program into SRAM, and passes control to it.
+The RAM program then replaces the status screen and animates a heartbeat.
 
 ## Requirements
 
@@ -21,9 +22,15 @@ From this directory, run:
 make
 ```
 
-This produces `demo.bin`, a complete 32 KiB EEPROM image. Program the image
+This produces `bios.bin`, a complete 32 KiB EEPROM image. Program the image
 into the 28C256, install it in the mainboard, connect the display to `Exp1`,
 and reset the system.
+
+`bios.asm` copies `ram-program.bin` to `0800:0200` (physical address `08200h`)
+and executes a far jump to that address. `ram-program.asm` is assembled with
+`ORG 0200h`, so labels inside the payload remain valid after copying. Replace
+it with another flat 16-bit program assembled for `0800:0200` to change what
+the BIOS loads. Keep it below the stack at physical `0FFFEh`.
 
 To program the EEPROM, you can use the
 [DIY EEPROM Programmer](https://github.com/erikvanzijst/eeprom) project.
@@ -32,5 +39,6 @@ The source assumes standard 20x4 HD44780 DDRAM line offsets. For a typical
 16x4 display, set `LINE3_CMD` to `090h` and `LINE4_CMD` to `0D0h` in
 `demo.asm` before building.
 
-`demo.bin` is a build artifact and is intentionally not stored in Git. Run
-`make clean` to remove it.
+The original standalone LCD program is still available: run `make demo` to
+build `demo.bin`. Build artifacts are intentionally not stored in Git; run
+`make clean` to remove them.
