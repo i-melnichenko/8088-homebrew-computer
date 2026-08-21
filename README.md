@@ -10,22 +10,21 @@ through-hole DIP components and a custom expansion architecture.
 The project is developed incrementally, starting with a minimal working
 system and gradually adding new hardware and software capabilities.
 
-## Firmware examples
+## Firmware
 
-The first public ROM example is the [LCD status demo](firmware/8088-mainboard/).
-It builds a 32 KiB EEPROM image that initializes an HD44780-compatible 20x4
-LCD on `Exp1`, displays system status, and updates a heartbeat spinner.
+The default firmware is a [minimal ROM BIOS](firmware/8088-mainboard/bios.asm).
+It builds a 32 KiB EEPROM image, initializes an HD44780-compatible 20×4 LCD
+on `Exp1`, copies the bundled program to SRAM, and transfers control to it.
 
 ## Mainboard Rev. 1.0
 
 | Front | Back |
 | --- | --- |
-| [![Front render](hardware/kicad/8088-mainboard/renders/rev1.0-front.png)](hardware/kicad/8088-mainboard/renders/rev1.0-front.png) | [![Back render](hardware/kicad/8088-mainboard/renders/rev1.0-back.png)](hardware/kicad/8088-mainboard/renders/rev1.0-back.png) |
+| [![Front render](hardware/kicad/renders/rev1.0-front.png)](hardware/kicad/renders/rev1.0-front.png) | [![Back render](hardware/kicad/renders/rev1.0-back.png)](hardware/kicad/renders/rev1.0-back.png) |
 
 ### Bill of materials
 
-The table below is derived from
-[`hardware/kicad/8088-mainboard`](hardware/kicad/8088-mainboard). All
+The table below is derived from [`hardware/kicad`](hardware/kicad). All
 components are through-hole.
 
 | Designators | Qty. | Part / value | Footprint / notes |
@@ -56,7 +55,45 @@ components are through-hole.
 | J4 | 1 | 5 V power input | 2-pin Phoenix MKDS-1,5, 5.08 mm pitch |
 | J5 | 1 | External clock input | 1×2 pin header, 2.54 mm pitch |
 
+> **Rev. 1.0 note:** Do not populate C7 or C8. These capacitors were removed
+> from the Rev. 1.1 design.
+
 For ICs, sockets are recommended; the PCB footprints already provide for them.
+
+### Display module
+
+The table below is derived from the
+[`display-module` schematic](hardware/kicad/display-module/display-module.kicad_sch).
+
+| Designators | Qty. | Part / value | Footprint / notes |
+| --- | ---: | --- | --- |
+| U1 | 1 | 74LS00 | DIP-14, 7.62 mm socket footprint |
+| U2 | 1 | 74LS373 | DIP-20, 7.62 mm socket footprint |
+| DS1 | 1 | WC1602A 16×2 LCD | 1×16, 2.54 mm pin socket |
+| C2, C3 | 2 | 100 nF ceramic | Disc capacitor, 5.00 mm pitch |
+| R2 | 1 | 650 Ω | DIN0207 axial, 7.62 mm pitch |
+| RV1 | 1 | 10 kΩ potentiometer | Runtron RM-065, vertical |
+| J1 | 1 | Expansion connector (Exp0) | 2×20 pin socket, 2.54 mm pitch |
+
+### UART module
+
+The table below is derived from the
+[`uart-module` schematic](hardware/kicad/uart-module/uart-module.kicad_sch).
+
+| Designators | Qty. | Part / value | Footprint / notes              |
+| --- | ---: | --- |--------------------------------|
+| U1 | 1 | GM16C550 UART | DIP-40, 15.24 mm               |
+| Y1 | 1 | 1.8432 MHz crystal | HC-49/U, vertical              |
+| C1 | 1 | 22 pF ceramic | Disc capacitor, 5.00 mm pitch  |
+| C2 | 1 | 47 pF ceramic | Disc capacitor, 5.00 mm pitch  |
+| C3 | 1 | 100 nF ceramic | Disc capacitor, 5.00 mm pitch  |
+| R3–R6 | 4 | 10 kΩ | DIN0207 axial, 7.62 mm pitch   |
+| R1 | 1 | 1 MΩ | DIN0207 axial, 7.62 mm pitch   |
+| R2 | 1 | 1.5 kΩ | DIN0207 axial, 7.62 mm pitch   |
+| R7 | 1 | 1 kΩ | DIN0207 axial, 7.62 mm pitch   |
+| R8 | 1 | 2 kΩ | DIN0207 axial, 7.62 mm pitch   |
+| J1 | 1 | Expansion connector (Exp0) | 2×20 pin socket, 2.54 mm pitch |
+| J2 | 1 | CP2102 module | 1×03 pin header, 2.54 mm pitch |
 
 ## Links
 
