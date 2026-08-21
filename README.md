@@ -65,15 +65,15 @@ For ICs, sockets are recommended; the PCB footprints already provide for them.
 The table below is derived from the
 [`display-module` schematic](hardware/kicad/display-module/display-module.kicad_sch).
 
-| Designators | Qty. | Part / value | Footprint / notes |
-| --- | ---: | --- | --- |
-| U1 | 1 | 74LS00 | DIP-14, 7.62 mm socket footprint |
-| U2 | 1 | 74LS373 | DIP-20, 7.62 mm socket footprint |
-| DS1 | 1 | WC1602A 16×2 LCD | 1×16, 2.54 mm pin socket |
-| C2, C3 | 2 | 100 nF ceramic | Disc capacitor, 5.00 mm pitch |
-| R2 | 1 | 650 Ω | DIN0207 axial, 7.62 mm pitch |
-| RV1 | 1 | 10 kΩ potentiometer | Runtron RM-065, vertical |
-| J1 | 1 | Expansion connector (Exp0) | 2×20 pin socket, 2.54 mm pitch |
+| Designators | Qty. | Part / value               | Footprint / notes |
+| --- | ---: |----------------------------| --- |
+| U1 | 1 | 74LS00                     | DIP-14, 7.62 mm socket footprint |
+| U2 | 1 | 74LS373                    | DIP-20, 7.62 mm socket footprint |
+| DS1 | 1 | WC1602A 16×2 LCD           | 1×16, 2.54 mm pin socket |
+| C2, C3 | 2 | 100 nF ceramic             | Disc capacitor, 5.00 mm pitch |
+| R2 | 1 | 650 Ω                      | DIN0207 axial, 7.62 mm pitch |
+| RV1 | 1 | 10 kΩ potentiometer        | Runtron RM-065, vertical |
+| J1 | 1 | Expansion connector (Exp1) | 2×20 pin socket, 2.54 mm pitch |
 
 ### UART module
 
