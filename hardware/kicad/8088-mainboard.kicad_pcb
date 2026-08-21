@@ -124,7 +124,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "../../../manufacturing/8088-mainboard/rev1.0/")
+			(outputdirectory "../../manufacturing/8088-mainboard/rev1.1/")
 		)
 	)
 	(footprint "MountingHole:MountingHole_3.2mm_M3_Pad"

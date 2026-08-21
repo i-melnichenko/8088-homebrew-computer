@@ -600,7 +600,7 @@
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "../../../manufacturing/8088-mainboard/rev1.0/",
+      "plot": "../../manufacturing/8088-mainboard/rev1.1/",
       "specctra_dsn": "",
       "vrml": ""
     },
