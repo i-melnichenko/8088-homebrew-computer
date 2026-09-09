@@ -3,4 +3,5 @@
 */**/.history
 */**/*.lck
 */**/*.kicad_prl
+*/**/*_drc_violations.json
 firmware/*/*.bin

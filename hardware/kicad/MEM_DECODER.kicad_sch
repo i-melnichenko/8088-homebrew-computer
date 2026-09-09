@@ -908,22 +908,6 @@
 		(color 0 0 0 0)
 		(uuid "f18cc583-0f9d-4826-a8be-289769636538")
 	)
-	(no_connect
-		(at 121.92 63.5)
-		(uuid "035df36b-1fa2-4393-848c-8e25213a24a5")
-	)
-	(no_connect
-		(at 121.92 73.66)
-		(uuid "2aa5d1fd-da53-415a-b3e6-397afbbeb063")
-	)
-	(no_connect
-		(at 121.92 66.04)
-		(uuid "4fe28a71-26cf-43f9-bbce-66e65f36a2a6")
-	)
-	(no_connect
-		(at 121.92 60.96)
-		(uuid "f9c8eaf5-4980-4851-aceb-4c6acc1d3f74")
-	)
 	(wire
 		(pts
 			(xy 121.92 60.96) (xy 101.6 60.96)
@@ -1016,16 +1000,6 @@
 	)
 	(wire
 		(pts
-			(xy 121.92 68.58) (xy 101.6 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ac663692-6828-4a7c-ad8b-e4db472e270d")
-	)
-	(wire
-		(pts
 			(xy 121.92 58.42) (xy 101.6 58.42)
 		)
 		(stroke
@@ -1043,6 +1017,16 @@
 			(type default)
 		)
 		(uuid "e1b92a7d-4dcf-4e06-b4f5-c2da71a8d03f")
+	)
+	(wire
+		(pts
+			(xy 101.6 68.58) (xy 121.92 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd2b69d6-e550-423f-9b57-1b5963d2c1d3")
 	)
 	(hierarchical_label "A17"
 		(shape input)
@@ -1077,7 +1061,7 @@
 		)
 		(uuid "52fca38d-e1a9-4d34-adc8-cc7844fda3ad")
 	)
-	(hierarchical_label "MEM_EXP1_CS"
+	(hierarchical_label "EXP_MEM_CS5"
 		(shape output)
 		(at 121.92 71.12 0)
 		(effects
@@ -1087,6 +1071,17 @@
 			(justify left)
 		)
 		(uuid "7eb5f6bc-884a-4fc6-a131-ae08cccaf135")
+	)
+	(hierarchical_label "RAM_BANK2_CS"
+		(shape output)
+		(at 121.92 63.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9a54528b-06a5-44d5-a1b1-d9769c397fbf")
 	)
 	(hierarchical_label "ROM_CS"
 		(shape output)
@@ -1099,6 +1094,17 @@
 		)
 		(uuid "9dc7d323-23ce-4584-8a4c-01e28709bcd3")
 	)
+	(hierarchical_label "EXP_MEM_CS6"
+		(shape output)
+		(at 121.92 73.66 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9e50beac-e357-4af2-987e-7159cce8df38")
+	)
 	(hierarchical_label "RAM_BANK0_CS"
 		(shape output)
 		(at 121.92 58.42 0)
@@ -1110,7 +1116,7 @@
 		)
 		(uuid "9ef2b3b4-b147-4032-97ed-cadcc3b89dd5")
 	)
-	(hierarchical_label "MEM_EXP0_CS"
+	(hierarchical_label "RAM_BANK4_CS"
 		(shape output)
 		(at 121.92 68.58 0)
 		(effects
@@ -1119,7 +1125,18 @@
 			)
 			(justify left)
 		)
-		(uuid "b3aabd4a-9ffc-4296-af24-5a75df3bbfd3")
+		(uuid "add42087-88a1-45e0-9e31-95d9e028ac96")
+	)
+	(hierarchical_label "RAM_BANK3_CS"
+		(shape output)
+		(at 121.92 66.04 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b3b63b58-81d7-4d4c-a5be-6983c6c0b944")
 	)
 	(hierarchical_label "IOM"
 		(shape input)
@@ -1132,6 +1149,17 @@
 		)
 		(uuid "c901106b-5f2c-473b-b963-80e58537eafa")
 	)
+	(hierarchical_label "RAM_BANK1_CS"
+		(shape output)
+		(at 121.92 60.96 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d592f183-3be9-46c2-8886-ac1529fe63a4")
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 81.28 46.99 270)
@@ -1143,7 +1171,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0c7a4be0-07e3-4b03-a3d9-873d6742bbc5")
-		(property "Reference" "C9"
+		(property "Reference" "C7"
 			(at 81.28 40.894 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1165,7 +1193,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 77.47 47.9552 0)
 			(hide yes)
 			(show_name no)
@@ -1207,7 +1235,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "C9")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -1225,7 +1253,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1bd6c473-0d92-4109-ba3b-49f00c5c4644")
-		(property "Reference" "#PWR034"
+		(property "Reference" "#PWR035"
 			(at 69.85 73.66 0)
 			(hide yes)
 			(show_name no)
@@ -1286,7 +1314,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR034")
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
@@ -1303,7 +1331,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "847aad66-08d9-4778-a1d1-cd6b73f95d25")
-		(property "Reference" "#PWR033"
+		(property "Reference" "#PWR034"
 			(at 63.5 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -1364,7 +1392,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR033")
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
@@ -1381,7 +1409,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ada5a4d3-394b-4d77-a39d-994789f0ca1f")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR037"
 			(at 88.9 45.72 0)
 			(hide yes)
 			(show_name no)
@@ -1442,7 +1470,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR036")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -1460,7 +1488,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cc08dfce-a423-4e15-8149-04d81443aedd")
-		(property "Reference" "#PWR035"
+		(property "Reference" "#PWR036"
 			(at 71.12 46.99 0)
 			(hide yes)
 			(show_name no)
@@ -1520,7 +1548,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR035")
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -1538,7 +1566,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "de7d85b6-6945-44c4-bd99-762b34d73d71")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR038"
 			(at 88.9 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -1598,7 +1626,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/8603fecf-1343-4cbc-8a43-8cc8a41e8f5f"
-					(reference "#PWR037")
+					(reference "#PWR038")
 					(unit 1)
 				)
 			)
