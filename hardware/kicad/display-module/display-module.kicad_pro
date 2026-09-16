@@ -514,7 +514,7 @@
         "track_width": 0.2,
         "tuning_profile": "",
         "via_diameter": 0.6,
-        "via_drill": 0.3,
+        "via_drill": 0.25,
         "wire_width": 6
       },
       {
@@ -682,7 +682,7 @@
         "uuid": "93e98e2f-7715-4b60-8647-9321c0405f9b"
       }
     ],
-    "used_designators": "#FLG1-2,RV1,R1-2,C1-3,C15,#PWR1-25,#PWR50-65,#PWR85,#PWR89,#PWR92-93,J1-2,U1-2,DS1",
+    "used_designators": "H1,RV1,#FLG1-2,JP1-4,R1-2,C1-4,C15,#PWR1-34,#PWR50-65,#PWR85,#PWR89,#PWR92-94,J1-2,U1-3,DS1",
     "variants": []
   },
   "sheets": [
