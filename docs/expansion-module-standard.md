@@ -11,7 +11,7 @@ Module-specific resource-selection records:
 - [Smart I/O Module configuration](smart-io-module.md)
 
 ## Mechanical specification
-![Mechanical drawing with dimensions in mils](./docs/expansion-module-mechanical.svg?3)
+![Mechanical drawing with dimensions in mils](./expansion-module-mechanical.svg?3)
 
 - Board outline: **4800 × 2900 mil** (**121.92 × 73.66 mm**; 48 × 29 pitches of 2.54 mm).
 - Corners: 4 mm radius.
