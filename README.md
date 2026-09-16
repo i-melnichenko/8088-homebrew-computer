@@ -24,8 +24,8 @@ latches demultiplex `AD0…AD7`, and a 74LS245 buffers the data bus.
 | Address range | Function |
 | --- | --- |
 | `00000h–9FFFFh` | 640 KiB SRAM (five 128 KiB banks) |
-| `A0000h–BFFFFh` | `MEM_EXP1`, including the conventional `B8000h` video-memory area |
-| `C0000h–DFFFFh` | Option ROM and memory expansion |
+| `A0000h–BFFFFh` | `EXP_MEM_CS5#` expansion-memory window, including the conventional `B8000h` video-memory area; available on both Exp0 and Exp1 |
+| `C0000h–DFFFFh` | `EXP_MEM_CS6#` expansion-memory / option-ROM window; available on both Exp0 and Exp1 |
 | `E0000h–FFFFFh` | 28C256 boot ROM (32 KiB mirrored in the window) |
 
 ## I/O map
