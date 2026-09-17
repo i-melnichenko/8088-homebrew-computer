@@ -21,7 +21,6 @@ and SMD components.
 | RV1 | 1 | 10 kΩ | Runtron RM-065 vertical trimmer |
 | C1 | 1 | 220 µF electrolytic | Radial, 2.00 mm pitch |
 | C2, C3 | 2 | 100 nF ceramic | THT disc, 5.00 mm pitch |
-| JP1, JP2 | 2 | Open solder jumper | 2-pad, 1.3 mm pitch; I/O CS selection |
 | J1 | 1 | Expansion connector A | Right-angle 2×20 male header, 2.54 mm pitch |
 | J2 | 1 | Expansion connector B | Right-angle 2×10 male header, 2.54 mm pitch |
 

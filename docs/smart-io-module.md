@@ -27,7 +27,6 @@ and SMD components.
 | C8 | 1 | 220 µF electrolytic | Radial, 2.00 mm pitch |
 | D1 | 1 | SS14 | SMA Schottky diode |
 | D2–D4 | 3 | BAT54WS | SOD-323 Schottky diode |
-| JP1–JP4 | 4 | Open solder jumper | 2-pad, 1.3 mm pitch; CS and IRQ selection |
 | J1 | 1 | TFT connector | Right-angle 1×10 male header, 2.54 mm pitch |
 | J2 | 1 | SD connector | Right-angle 1×6 male header, 2.54 mm pitch |
 | J3 | 1 | Expansion connector A | Right-angle 2×20 male header, 2.54 mm pitch |
