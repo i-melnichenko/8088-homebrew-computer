@@ -12593,7 +12593,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "bd407b0c-a346-4405-a91e-9df82c02e615")
 		(property "Reference" "U1"
 			(at 94.8533 132.08 0)
@@ -12606,7 +12605,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ESP32-S3-DevKitC"
+		(property "Value" "ESP32-S3"
 			(at 94.8533 134.62 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12617,7 +12616,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "PCM_Espressif:ESP32-S3-DevKitC"
+		(property "Footprint" "Module:ESP32-S3-Dual-Type-C"
 			(at 92.71 143.51 0)
 			(hide yes)
 			(show_name no)
@@ -12639,9 +12638,8 @@
 				)
 			)
 		)
-		(property "Description" "ESP32-S3-DevKitC"
-			(at 92.71 86.36 0)
-			(hide yes)
+		(property "Description" "ESP32-S3-Dual-Type-C"
+			(at 82.804 88.646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
