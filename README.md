@@ -10,11 +10,32 @@ through-hole DIP components and a custom expansion architecture.
 The project is developed incrementally, starting with a minimal working
 system and gradually adding new hardware and software capabilities.
 
-## Firmware
+## Firmware and host tools
 
-The default firmware is a [minimal ROM BIOS](firmware/8088-mainboard/bios.asm).
-It builds a 32 KiB EEPROM image, initializes an HD44780-compatible 20×4 LCD
-on `Exp1`, copies the bundled program to SRAM, and transfers control to it.
+The [ROM BIOS](firmware/8088-mainboard/README.md) builds a 32 KiB EEPROM image
+and runs a UART monitor directly from ROM. It initializes an
+HD44780-compatible 20×4 LCD on `Exp1` and a GM16C550 UART on `Exp0`, then
+loads and runs programs in SRAM. The boot menu can test payload RAM, show board
+information and run UART-loaded programs. Default OS boot is not implemented
+yet.
+
+Build the BIOS with NASM, then use [boardctl](tools/boardctl/README.md) on the
+host to communicate over the UART. `boardctl` requires Go 1.26 or later and
+uses macOS `stty` to configure the serial port. From the repository root:
+
+```sh
+make -C firmware/8088-mainboard
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX info
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX keyboard
+```
+
+The menu remains on the board LCD; `keyboard` sends Up/Down, Enter and Esc
+from the host terminal. Programs receive the same input through polled INT 16h;
+revision 1 does not use hardware interrupts. `boardctl` also supports program
+upload and management, RAM inspection, and EEPROM readback. EEPROM writing is
+not implemented on revision 1. See the [firmware guide](firmware/8088-mainboard/README.md)
+for builds and BIOS behavior, and the [boardctl guide](tools/boardctl/README.md)
+for commands and examples.
 
 ## Mainboard Rev. 1.0
 
@@ -69,7 +90,7 @@ The table below is derived from the
 | --- | ---: |----------------------------| --- |
 | U1 | 1 | 74LS00                     | DIP-14, 7.62 mm socket footprint |
 | U2 | 1 | 74LS373                    | DIP-20, 7.62 mm socket footprint |
-| DS1 | 1 | WC1602A 16×2 LCD           | 1×16, 2.54 mm pin socket |
+| DS1 | 1 | WC1602A 16×2 LCD in schematic; current build uses a 20×4 LCD | 1×16, 2.54 mm pin socket |
 | C2, C3 | 2 | 100 nF ceramic             | Disc capacitor, 5.00 mm pitch |
 | R2 | 1 | 650 Ω                      | DIN0207 axial, 7.62 mm pitch |
 | RV1 | 1 | 10 kΩ potentiometer        | Runtron RM-065, vertical |
