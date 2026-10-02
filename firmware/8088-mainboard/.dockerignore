@@ -1,0 +1,6 @@
+build/
+flash-eeprom.sh
+**/__pycache__/
+**/*.pyc
+.venv/
+.DS_Store
