@@ -1,5 +1,7 @@
-; Destructive test of ONLY payload RAM; buffers and 1 KiB stack are excluded.
-; Ten passes: write/read 00, FF, 55, AA, and an address-dependent byte.
+; Test one complete SRAM alias. Payload RAM is destructive; reserved bytes
+; (IVT, BDA, BIOS/API state and stacks) are restored after each probe.
+; Ten phases: write/verify 00, FF, 55, AA, and an address-dependent byte in
+; payload RAM; probe reserved bytes during the five verify phases.
 ; Work is sliced into 16-byte units so menu/protocol remain responsive.
 ; Count every byte verification (five per address), continue after failures,
 ; and retain the first mismatch for the log. Counters are 32-bit.
@@ -12,8 +14,8 @@ memory_start:
     mov word [es:MONITOR_TOTAL], 0
     mov word [es:MONITOR_RECEIVED], 0
     mov byte [es:LAST_WRITE_VALID], 0
-    mov word [es:MEM_ADDR], PROGRAM_BASE
-    mov word [es:MEM_BLOCK], PROGRAM_BASE
+    mov word [es:MEM_ADDR], SRAM_TEST_BASE
+    mov word [es:MEM_BLOCK], SRAM_TEST_BASE
     mov byte [es:MEM_PHASE], 0
     mov byte [es:MEM_ERROR], 0
     mov word [es:MEM_OK], 0
@@ -29,33 +31,46 @@ memory_step:
     ret
 .active:
     push es
+    push si
     mov bx, [es:MEM_ADDR]
     mov [es:MEM_BLOCK], bx
     mov dl, [es:MEM_PHASE]
+    mov si, dx
+    and si, 7
+    shr si, 1
     xor ax, ax
     mov es, ax
     mov cx, 16
 .byte:
     cmp dl, 8
     jae .address
-    xor ax, ax
-    mov al, dl
-    shr al, 1
-    push bx
-    mov bx, ax
-    mov al, [memory_patterns + bx]
-    pop bx
+    mov al, [memory_patterns + si]
     jmp short .value
 .address:
     mov ax, bx
     xor al, ah
 .value:
+    cmp bx, PROGRAM_BASE
+    jb .reserved
+    cmp bx, SRAM_STACK_BOTTOM
+    jae .reserved
     test dl, 1
     jnz .verify
     mov [es:bx], al
     jmp short .next
+.reserved:
+    ; No stack access or state update while a live SRAM byte is overwritten.
+    ; Even phases only advance; odd phases perform the five probes.
+    test dl, 1
+    jz .next
+    mov dh, [es:bx]
+    mov [es:bx], al
+    mov ah, [es:bx]
+    mov [es:bx], dh
+    jmp short .compare
 .verify:
     mov ah, [es:bx]
+.compare:
     cmp al, ah
     jne .failed
     add word [es:BIOS_STATE_BASE + MEM_OK], 1
@@ -63,9 +78,10 @@ memory_step:
 .next:
     inc bx
     loop .byte
+    pop si
     pop es
     mov [es:MEM_ADDR], bx
-    cmp bx, SRAM_STACK_BOTTOM
+    test bx, bx
     je .phase
     test bx, 07FFh
     jnz .done
@@ -73,7 +89,7 @@ memory_step:
 .done:
     ret
 .phase:
-    mov word [es:MEM_ADDR], PROGRAM_BASE
+    mov word [es:MEM_ADDR], SRAM_TEST_BASE
     inc byte [es:MEM_PHASE]
     cmp byte [es:MEM_PHASE], 10
     jb .redraw

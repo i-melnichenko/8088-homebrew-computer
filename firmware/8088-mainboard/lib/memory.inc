@@ -2,6 +2,8 @@
 ; Use its 08000h alias for the monitor, but reserve the low-memory structures.
 
 RAM_SEGMENT      equ 0850h
+SRAM_TEST_BASE   equ 08000h        ; one complete 32 KiB SRAM alias
+SRAM_TEST_SIZE   equ 08000h
 BIOS_STATE_BASE  equ RAM_SEGMENT * 16
 BIOS_STATE_SIZE  equ 0200h
 PROGRAM_OFFSET  equ 0300h

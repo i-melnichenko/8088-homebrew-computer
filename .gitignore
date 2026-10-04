@@ -5,5 +5,5 @@
 */**/*.kicad_prl
 firmware/*/*.bin
 firmware/8088-mainboard/build/
-firmware/8088-mainboard/flash-eeprom.sh
 */**/*_drc_violations.json
+/tools/boardctl/boardctl

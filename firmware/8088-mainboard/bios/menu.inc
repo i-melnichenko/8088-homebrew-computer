@@ -451,10 +451,10 @@ menu_memory_progress:
     mov bh, al                      ; whole cells from completed passes
     mov bl, ah                      ; remaining tenths of one cell
     mov ax, [es:MEM_ADDR]
-    sub ax, PROGRAM_BASE
+    sub ax, SRAM_TEST_BASE
     mov cx, MENU_BAR_CELLS
     mul cx
-    mov cx, MAX_PROGRAM_SIZE
+    mov cx, SRAM_TEST_SIZE
     div cx
     add al, bl
     mov cl, 10
