@@ -1,5 +1,5 @@
 ; MEMORY_READ payload: physical address:u32, size:u16 (1..127).
-; Only the rev1 SRAM decode bank (including aliases) is readable.
+; Read physical RAM through 9FFFFh.
 ; No execution or diagnostic can run concurrently with a monitor read.
 monitor_memory_read:
     cmp byte [es:MENU_PAGE], PAGE_TEST
@@ -21,19 +21,19 @@ monitor_memory_read:
     adc bp, 0
     jc .error
     inc cx
-    cmp dx, 1
+    cmp dx, (RAM_END - 1) >> 16
     ja .error
-    cmp bp, 1
+    cmp bp, (RAM_END - 1) >> 16
     ja .error
     ; RX is also readable RAM. Use memmove direction if copying its bytes
-    ; upward into the reply would overwrite unread source bytes. The four
-    ; SRAM aliases all share the same underlying 32 KiB.
+    ; upward into the reply would overwrite unread source bytes.
+    test dx, dx
+    jnz .forward
     mov bx, ax
-    and bx, 7FFFh
-    cmp bx, (BIOS_STATE_BASE & 7FFFh) + RX_BUFFER + 6
+    cmp bx, BIOS_STATE_BASE + RX_BUFFER + 6
     jae .forward
     add bx, cx
-    cmp bx, (BIOS_STATE_BASE & 7FFFh) + RX_BUFFER + 6
+    cmp bx, BIOS_STATE_BASE + RX_BUFFER + 6
     jbe .forward
     mov bl, 1                       ; overlapping source: copy backwards
     jmp .copy

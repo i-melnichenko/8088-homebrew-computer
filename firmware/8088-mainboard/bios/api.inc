@@ -58,7 +58,7 @@ api_initialize:
     mov word [es:BIOS_INT_KEYBOARD * 4], api_keyboard
     mov word [es:BIOS_INT_BOARD * 4], api_board
     mov word [es:0400h], UART_BASE
-    mov word [es:0413h], 32          ; physical SRAM, not its four mirrors
+    mov word [es:0413h], RAM_KIB
     mov byte [es:0449h], 7Fh         ; board-specific LCD mode, not PC mode 3
     mov word [es:044Ah], LCD_COLUMNS
     mov word [es:044Ch], 80
@@ -500,7 +500,7 @@ api_draw_line:
 
 api_console_putc:
     mov dx, [es:API_CURSOR]
-    cmp al, 07h                     ; no speaker on rev1
+    cmp al, 07h                     ; no speaker in the current BIOS
     je .done
     cmp al, 08h
     je .backspace

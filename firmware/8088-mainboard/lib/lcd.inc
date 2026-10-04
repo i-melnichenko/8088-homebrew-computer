@@ -1,7 +1,7 @@
-; HD44780-compatible LCD connected to Exp1.
+; HD44780-compatible LCD. Rev2 display module: bridge JP1 (80h..9Fh).
 
-LCD_COMMAND_PORT equ 0C0h
-LCD_DATA_PORT    equ 0C1h
+LCD_COMMAND_PORT equ 080h
+LCD_DATA_PORT    equ 081h
 LCD_COLUMNS      equ 20
 LCD_LINE1        equ 080h
 LCD_LINE2        equ 0C0h

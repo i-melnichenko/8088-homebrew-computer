@@ -74,11 +74,21 @@ eeprom_ping:
 eeprom_reset:
     cmp word [es:DECODE_BUFFER + 3], 0
     jne eeprom_common_error
-    ; Rev1 never writes EEPROM, so leaving the read-only monitor is safe.
+    cmp byte [eeprom_started], 0
+    je .allowed
+    cmp word [eeprom_next], 8000h
+    jne .blocked
+.allowed:
     xor al, al
     call monitor_reply
     call monitor_wait_tx_empty
     jmp ROM_SEGMENT:0000h
+.blocked:
+    mov bx, eeprom_screen_bad_request
+    xor dx, dx
+    call eeprom_screen_update
+    mov al, 18
+    jmp monitor_reply
 
 eeprom_mode_retry:
     ; A lost entry ACK may be retried; no fresh entry/restart is accepted here.

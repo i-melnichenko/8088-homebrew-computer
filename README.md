@@ -11,6 +11,48 @@ and software capabilities.
 | --- | --- |
 | [![Front render](docs/renders/rev2.0-front.png?1)](docs/renders/rev2.0-front.png?1) | [![Left-side assembly render](docs/renders/rev2.0-left.png?1)](docs/renders/rev2.0-left.png?1) |
 
+## Firmware and host tools
+
+The repository includes a [32 KiB ROM BIOS](firmware/8088-mainboard/README.md)
+and [boardctl](tools/boardctl/README.md), a host-side UART utility. The BIOS
+runs a monitor directly from ROM, displays a menu on a 20×4 LCD, and loads up
+to four named programs into SRAM. The menu offers program selection, a RAM
+check, and board information; default OS boot is still a placeholder. Uploaded
+programs can use the [BIOS interrupt API](firmware/8088-mainboard/docs/bios-api.md)
+for LCD, UART, and keyboard services.
+
+Build the ROM image with NASM and the example programs with the same Makefile.
+`boardctl` requires Go 1.26 or later and currently configures serial ports
+with macOS `stty`. From the repository root:
+
+```sh
+make -C firmware/8088-mainboard
+make -C firmware/8088-mainboard citylights terminal
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX info
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX keyboard
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX upload \
+  --name "City Lights" firmware/8088-mainboard/build/citylights.bin
+```
+
+`keyboard` sends menu and program input from the host terminal; the menu stays
+on the board LCD. `boardctl` also provides a raw `console`, program listing and
+management, RAM dump/write, reset, and EEPROM readback/flashing. The Rev. 2
+EEPROM write path uses the board's `ROM_WE_SW` switch; see the
+[BIOS flasher instructions](firmware/8088-mainboard/README.md#bios-flasher-mode).
+See the [boardctl command guide](tools/boardctl/README.md#commands)
+for usage and the [UART protocol v1](docs/uart-protocol-v1.md) for framing,
+commands, status codes, and retry rules.
+
+The BIOS now targets **Rev. 2 only**: on-board UART at `3F8h–3FFh`, 9600 8N1,
+and a 20×4 display module with **JP1 bridged** (`80h/81h` command/data ports).
+It reports 640 KiB of physical SRAM and accepts monitor reads across
+`00000h–9FFFFh`. Program allocation and raw monitor writes currently use
+`8800h–FBFFh` in the first 64 KiB; the menu memory check covers all
+`00000h–9FFFFh` (640 KiB). The RAM flasher supports EEPROM
+readback and full-image writing. `boardctl` stays at 9600
+baud; its current `dump` validation still limits host-initiated RAM dumps to
+`00000h–1FFFFh`.
+
 ## Architecture
 
 The mainboard is built around an Intel 8088 in minimum mode. It exposes a
@@ -42,8 +84,8 @@ latches demultiplex `AD0…AD7`, and a 74LS245 buffers the data bus.
 ## UART console
 
 The GM16C550 UART provides a COM1-compatible console at `3F8h–3FFh`. Its
-1.8432 MHz crystal supports common serial rates; the intended console rate is
-19,200 baud.
+1.8432 MHz crystal supports common serial rates; the current BIOS and
+`boardctl` use 9600 8N1.
 
 `J9` is a 3-pin TTL UART header (`GND`, `TXD`, `RXD`). To connect the computer
 to a USB host, use an external **CP2102 USB-to-TTL adapter**: connect ground
@@ -83,15 +125,6 @@ The mechanical and electrical contract for daughterboards is defined in the
 | --- | --- | --- |
 | Display Module | HD44780-compatible character LCD interface | [Configuration and BOM](docs/display-module.md) |
 | Smart I/O Module | ESP32-based smart I/O, TFT, and SD interface | [Configuration and BOM](docs/smart-io-module.md) |
-
-[//]: # (## Firmware)
-
-[//]: # ()
-[//]: # (The default firmware is a [minimal ROM BIOS]&#40;firmware/8088-mainboard/bios.asm&#41;.)
-
-[//]: # (It builds a 32 KiB EEPROM image, initializes an HD44780-compatible 20×4 LCD)
-
-[//]: # (on `Exp1`, copies the bundled program to SRAM, and transfers control to it.)
 
 ## Bill of materials
 
