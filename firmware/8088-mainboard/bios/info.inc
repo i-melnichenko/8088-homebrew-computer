@@ -36,9 +36,9 @@ INFO_PROGRAM_INDEX equ 9
 
 info_title: db 'INFO', 0
 info_version: db 'BIOS: ', BIOS_VERSION, 0
-info_board: db 'BOARD: REV 1', 0
+info_board: db 'BOARD: REV 2', 0
 info_cpu: db 'CPU: 8088', 0
-info_ram: db 'RAM: 32 KiB', 0
+info_ram: db 'RAM: 640 KiB', 0
 info_rom: db 'ROM: 32 KiB', 0
 info_lcd: db 'LCD: 20x4', 0
 info_uart: db 'UART: 9600 8N1', 0
@@ -47,7 +47,7 @@ info_api_version: db 'API: ', '0' + BIOS_API_VERSION, 0
 info_programs: db 'PROGRAMS: 0/', '0' + PROGRAM_CAPACITY, 0
 info_rom_address: db 'ROM AT: F800:0000', 0
 info_ram_address: db 'UPLOAD: 8800-FBFF', 0
-info_uart_address: db 'UART I/O: A0-A7', 0
-info_lcd_address: db 'LCD I/O: C0-C1', 0
-info_protocol: db 'BIOS ', BIOS_VERSION, '; rev1; ROM F8000; SRAM 32K mirrored; payload 8800-FBFF; UART A0 9600 8N1; protocol 1; API 1'
+info_uart_address: db 'UART I/O: 3F8-3FF', 0
+info_lcd_address: db 'LCD I/O: 80-81', 0
+info_protocol: db 'BIOS ', BIOS_VERSION, '; rev2; ROM F8000; SRAM 640K; payload 8800-FBFF; UART 3F8 9600 8N1; protocol 1; API 1'
 info_protocol_end:

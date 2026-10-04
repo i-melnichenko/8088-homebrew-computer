@@ -1,30 +1,30 @@
 # ROM BIOS software-interrupt API
 
-API revision **1** runs on the revision-1 8088 board using real software
+API revision **1** runs on the revision-2 8088 board using real software
 interrupts. It is independent of the UART wire protocol version (also 1).
 This is a documented subset of PC-style BIOS services plus board extensions,
 not a complete IBM PC BIOS or a claim that stock MS-DOS can boot.
 
 ## Memory and execution
 
-The current decoder selects RAM for physical 00000h..1FFFFh. Its 32-KiB
-SRAM uses A0..A14 only: addresses separated by 8000h refer to the same bytes.
-They are aliases, not additional memory. BIOS keeps its existing upper-alias
-execution convention, reserving the corresponding low-memory structures:
+The Rev. 2 decoder selects 640 KiB of distinct RAM at physical
+`00000h..9FFFFh`. The current program registry still uses 16-bit addresses,
+so BIOS allocates programs only in the first 64 KiB:
 
-| Canonical SRAM bytes | Upper alias | Purpose |
-| --- | --- | --- |
-| 0000..03FF | 8000..83FF | 256 interrupt vectors, offset:segment |
-| 0400..04FF | 8400..84FF | BIOS Data Area, partial implementation |
-| 0500..06FF | 8500..86FF | monitor buffers, screen, registry |
-| 0700..07FF | 8700..87FF | API LCD framebuffer, cursor, keyboard and EEPROM mode parameters |
-| 0800..7BFF | 8800..FBFF | program allocations, 29,696 bytes minus alignment gaps |
-| 7C00..7DFF | FC00..FDFF | program stack |
-| 7E00..7FFF | FE00..FFFF | BIOS stack |
+| Physical SRAM bytes | Purpose |
+| --- | --- |
+| 0000..03FF | 256 interrupt vectors, offset:segment |
+| 0400..04FF | BIOS Data Area, partial implementation |
+| 8500..86FF | monitor buffers, screen, registry |
+| 8700..87FF | API LCD framebuffer, cursor, keyboard and EEPROM mode parameters |
+| 8800..FBFF | program allocations, 29,696 bytes minus alignment gaps |
+| FC00..FDFF | program stack |
+| FE00..FFFF | BIOS stack |
+| 10000..9FFFF | physical RAM readable through the monitor, not allocated to programs |
 
 The vectors for 10h, 14h, 16h and 60h point into ROM F800:xxxx. Other vectors
 currently lead to the unsupported-service handler. This is not exception
-recovery: keep hardware interrupts disabled on revision 1. Software INT
+recovery: this BIOS keeps hardware interrupts disabled. Software INT
 works with IF=0 and does not require a PIC.
 
 Programs remain flat 8086-compatible ORG-0 images. BIOS far-calls their
@@ -39,8 +39,8 @@ Invalid function numbers/parameters return CF=1 and AH=86h; this error
 convention is a board extension, not a claim about unspecified PC BIOS cases.
 Never access service internals or depend on handler addresses.
 
-The BDA currently initializes COM1 base (0040:0000 = A0h), physical memory
-size (0040:0013 = 32 KiB), keyboard ring head/tail (001A/001C) and buffer
+The BDA currently initializes COM1 base (0040:0000 = 3F8h), physical memory
+size (0040:0013 = 640 KiB), keyboard ring head/tail (001A/001C) and buffer
 (001E..003D, 16 word slots with at most 15 queued keys), display mode
 (0049 = custom 7Fh), columns (004A = 20),
 framebuffer byte count (004C = 80), page-0 cursor (0050), and last row
@@ -67,7 +67,7 @@ Valid video calls preserve FLAGS. This 20x4 custom mode is not PC mode 3.
 
 ## INT 14h — serial port
 
-DX is the BIOS port index, **0** for the sole UART, not the A0h I/O address.
+DX is the BIOS port index, **0** for the sole UART, not the `3F8h` I/O address.
 
 | AH | Inputs | Outputs / operation |
 | --- | --- | --- |
@@ -107,7 +107,7 @@ and F1..F10 into keys with AL=0 and a PC-style scan code in AH. Enter becomes
 0D/1C, Backspace 08/0E and Esc 1B/01. No modifier/release events or PS/2
 decoding are implemented. The BIOS menu consumes the same BDA queue as programs.
 
-There are **no hardware interrupts on revision 1**. Both AH=00h and AH=01h
+The current BIOS does not use Rev. 2 hardware interrupts. Both AH=00h and AH=01h
 pump the UART frame decoder, at most one complete request per call. AH=00h
 continues polling until a key is available; AH=01h is suitable for cooperative
 program loops. Long work without these calls may cause UART overflow or host
@@ -128,7 +128,7 @@ For a program doing other work, poll between bounded work slices:
 ~~~
 
 In sharing mode, the program-side poll accepts keyboard mode/events and PING;
-BIOS_WRITE receives status 17 (unsupported) on revision 1; other valid monitor
+BIOS_WRITE receives status 17 (unsupported); other valid monitor
 commands, including BIOS_FLASHER_MODE and BIOS_READ, receive status 11 (program
 busy). Uploads remain
 available only in the ROM menu. Sharing survives RETF, but Reset disables it.
@@ -189,8 +189,8 @@ The animation also polls INT 16h between short delay slices; Esc ends its loop.
 
 ## Verification and compatibility direction
 
-`make test` from `firmware/8088-mainboard` runs only inside Docker. The emulator maps all four SRAM aliases
-to one backing store and emulates CPU INT vector dispatch; the actual ROM
+`make test` from `firmware/8088-mainboard` runs only inside Docker. The emulator
+maps distinct Rev. 2 SRAM banks and emulates CPU INT vector dispatch; the actual ROM
 handler and IRET instructions execute in Unicorn. Tests cover vectors/BDA,
 upload and memory-test isolation, caller segments/registers/flags/stack,
 cursor/scrolling/CGRAM, UART status/timeout, keyboard peek/get and return.

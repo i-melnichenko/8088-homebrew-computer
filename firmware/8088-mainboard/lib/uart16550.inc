@@ -1,7 +1,7 @@
-; GM16C550 / 16550 register layout on the Exp0 UART module.
-; Exp0 decodes I/O A0h..BFh; the module uses A0..A2.
+; GM16C550 / 16550 register layout. Rev2 UART is on the mainboard at COM1.
 
-UART_BASE equ 0A0h
+UART_BASE equ 03F8h
+UART_DIVISOR equ 12                   ; 9600 baud
 UART_RBR  equ UART_BASE + 0       ; receive buffer (read)
 UART_THR  equ UART_BASE + 0       ; transmit holding register (write)
 UART_IER  equ UART_BASE + 1
@@ -18,8 +18,7 @@ UART_FCR_ENABLE    equ 07h        ; enable and clear both FIFOs
 UART_LSR_DATA_READY equ 01h
 UART_LSR_THR_EMPTY equ 20h
 
-; 1.8432 MHz / 16 / 12 = 9600 baud.
-UART_DIVISOR equ 12
+; 1.8432 MHz / 16 / divisor.
 
 uart_initialize:
     mov dx, UART_IER

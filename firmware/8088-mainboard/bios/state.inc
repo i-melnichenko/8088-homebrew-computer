@@ -52,6 +52,10 @@ INFO_TOP              equ 01FEh       ; first visible row of the Info list
 ; Flasher entry sequence in unused space after the API keyboard state.
 EEPROM_MODE_SEQUENCE  equ 0260h
 EEPROM_STATE_END      equ 0261h
+MEM_ADDR_HI           equ 0262h       ; physical address bits 16..19
+MEM_BLOCK_HI          equ 0263h
+MEM_FAIL_HI           equ 0264h
+MEM_STATE_END         equ 0265h
 
 ; Reserve four bytes at the end of the API state page for menu-only blink.
 ; Core monitor state still fits in 0000..01FF; API framebuffer is untouched.
@@ -60,7 +64,7 @@ MENU_BLINK_PHASE       equ PROGRAM_OFFSET - 2 ; 0=visible, 1=hidden
 MENU_BLINK_PENDING     equ PROGRAM_OFFSET - 1 ; 0=idle, 1=command, 2=data
 MENU_BLINK_PERIOD      equ 2048        ; idle-loop ticks, not a hardware clock
 
-%if EEPROM_STATE_END > MENU_BLINK_TICKS
+%if MEM_STATE_END > MENU_BLINK_TICKS
     %error EEPROM state overlaps menu blink state
 %endif
 

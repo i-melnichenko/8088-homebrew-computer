@@ -140,22 +140,22 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.0,
-        "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.5,
+        "min_clearance": 0.2,
+        "min_connection": 0.2,
+        "min_copper_edge_clearance": 0.3,
         "min_groove_width": 0.0,
-        "min_hole_clearance": 0.25,
+        "min_hole_clearance": 0.2,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
-        "min_microvia_drill": 0.1,
+        "min_microvia_drill": 0.15,
         "min_resolved_spokes": 2,
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
         "min_through_hole_diameter": 0.3,
         "min_track_width": 0.2,
-        "min_via_annular_width": 0.1,
-        "min_via_diameter": 0.5,
+        "min_via_annular_width": 0.15,
+        "min_via_diameter": 0.6,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -260,7 +260,16 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "power_pin_not_driven|1803400|584200|87501749-211d-4802-ba52-b0d618219866|00000000-0000-0000-0000-000000000000|/93e98e2f-7715-4b60-8647-9321c0405f9b|/93e98e2f-7715-4b60-8647-9321c0405f9b|",
+        "-"
+      ],
+      [
+        "power_pin_not_driven|2171700|558800|87501749-211d-4802-ba52-b0d618219866|00000000-0000-0000-0000-000000000000|/93e98e2f-7715-4b60-8647-9321c0405f9b|/93e98e2f-7715-4b60-8647-9321c0405f9b|",
+        ""
+      ]
+    ],
     "meta": {
       "version": 0
     },
@@ -508,9 +517,20 @@
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.7,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "clearance": 0.2,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.8,
+        "tuning_profile": "",
+        "via_diameter": 1.0,
+        "via_drill": 0.5
       }
     ],
     "meta": {
@@ -518,13 +538,22 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VCC"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "../../../manufacturing/display/rev2.0/",
       "specctra_dsn": "",
       "vrml": ""
     },
@@ -656,7 +685,7 @@
         "uuid": "93e98e2f-7715-4b60-8647-9321c0405f9b"
       }
     ],
-    "used_designators": "RV1,R2,C2-3,#PWR10-16,#PWR50-65,J2,U1-2,DS1",
+    "used_designators": "H1,RV1,#FLG1-2,JP1-4,R1-2,C1-4,C15,#PWR1-34,#PWR50-65,#PWR85,#PWR89,#PWR92-94,J1-2,U1-3,DS1",
     "variants": []
   },
   "sheets": [

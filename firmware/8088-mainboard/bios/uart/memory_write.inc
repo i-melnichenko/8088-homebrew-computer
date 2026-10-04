@@ -1,5 +1,5 @@
 ; MEMORY_WRITE payload: physical address:u32, 1..124 data bytes.
-; Restrict the complete range to payload SRAM, including all physical aliases.
+; Restrict the complete range to first-bank payload SRAM.
 ; IVT/BDA, monitor/API state and both stacks are never writable by this command.
 monitor_memory_write:
     cmp byte [es:MENU_PAGE], PAGE_TEST
@@ -12,18 +12,17 @@ monitor_memory_write:
     cmp cx, PROTO_MAX_PAYLOAD
     ja .error
     sub cx, 4
-    cmp word [es:DECODE_BUFFER + 7], 1
-    ja .error                       ; only SRAM 00000h..1FFFFh, never ROM
+    cmp word [es:DECODE_BUFFER + 7], 0
+    jne .error
     mov ax, [es:DECODE_BUFFER + 5]
-    and ax, 7FFFh                   ; all four aliases share these SRAM bytes
-    cmp ax, PROGRAM_BASE & 7FFFh
+    cmp ax, PROGRAM_BASE
     jb .error
     mov di, ax
     add ax, cx
     jc .error
-    cmp ax, SRAM_STACK_BOTTOM & 7FFFh
+    cmp ax, SRAM_STACK_BOTTOM
     ja .error                       ; whole block must precede stack RAM
-    ; Validation is complete before the first write. Use the low SRAM alias.
+    ; Validation is complete before the first write. Use physical first-bank RAM.
     push ds
     push es
     mov ax, es

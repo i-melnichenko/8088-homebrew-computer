@@ -3,6 +3,7 @@
 */**/.history
 */**/*.lck
 */**/*.kicad_prl
+*/**/*_drc_violations.json
 firmware/*/*.bin
 firmware/8088-mainboard/build/
 */**/*_drc_violations.json

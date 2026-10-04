@@ -69,7 +69,13 @@
           "thermal_relief_spoke_width": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -140,11 +146,11 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.0,
-        "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.5,
+        "min_clearance": 0.2,
+        "min_connection": 0.2,
+        "min_copper_edge_clearance": 0.3,
         "min_groove_width": 0.0,
-        "min_hole_clearance": 0.25,
+        "min_hole_clearance": 0.2,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
         "min_microvia_drill": 0.1,
@@ -154,8 +160,8 @@
         "min_text_thickness": 0.08,
         "min_through_hole_diameter": 0.3,
         "min_track_width": 0.2,
-        "min_via_annular_width": 0.1,
-        "min_via_diameter": 0.5,
+        "min_via_annular_width": 0.15,
+        "min_via_diameter": 0.6,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -203,7 +209,9 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -230,7 +238,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -260,7 +273,104 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "isolated_pin_label|1244600|1308100|7623e0ed-6faa-471e-b1d9-5fbfcab31aca|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|558800|7dbd6d3f-14a9-493e-bac9-88fe9508d5b2|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|584200|8b9ca83e-7656-4cd0-8f71-b774adc53d45|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|609600|736f9aff-c30a-4765-93d9-04955714652c|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|635000|74fcd89a-e6c0-405c-aba7-2ac4a4072184|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|660400|420ad0c0-3d1e-476b-b0a4-edea1637ea25|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|685800|f2b49166-e21d-43d7-94ff-63802d420984|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|711200|4e108ace-6313-483c-90ca-a4468a22b41b|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|736600|d703209b-3e19-49d1-8270-d71328858049|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|762000|7dca6539-5c0d-4d8b-9e52-f1a0e8944615|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|787400|f1178e03-a82b-463c-bad3-557029876076|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|812800|9d69a0a0-433e-4d51-86da-aa22b28673cc|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|838200|368986fd-4c5b-438d-b537-7aee17fb01a3|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|863600|65cebf7d-3a21-4838-9b9c-9607e6f4e0f2|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|889000|2402c5ac-678e-421d-ab23-8850a4ed4fb3|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|914400|18b9499c-6533-4783-81b6-492784a564f1|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|939800|a03f8fef-21ce-45c0-869f-725bb2927d5e|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1524000|965200|a01e1bf9-90c3-4ade-93db-86a6c9401b9e|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1206500|41613c12-f3d4-4878-866b-6de5abe2a2a7|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1282700|7ec9eb1b-8ee4-45ce-a064-5a73724e8249|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1308100|ab9306c1-8767-4794-877d-9f72fd1bfc67|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1333500|99def513-acfc-4250-a86c-879b3a88404a|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1358900|31d2c033-838a-447f-8527-7b100e24e3bd|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ],
+      [
+        "isolated_pin_label|1676400|1384300|57daf42c-ee40-4a7d-8d65-152e9d96f4fa|00000000-0000-0000-0000-000000000000|/d7ba4e02-1466-47b2-8a45-a22342e50b5c/a7b96b31-d661-445e-8c71-6bd0afd6dc78||",
+        ""
+      ]
+    ],
     "meta": {
       "version": 0
     },
@@ -488,7 +598,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "uart-module.kicad_pro",
+    "filename": "smart-io-module.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -508,9 +618,20 @@
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.7,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "clearance": 0.2,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.8,
+        "tuning_profile": "",
+        "via_diameter": 1.0,
+        "via_drill": 0.5
       }
     ],
     "meta": {
@@ -518,13 +639,26 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VCC"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "/3V3"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "../../../manufacturing/smart-io-module/v1.0/",
       "specctra_dsn": "",
       "vrml": ""
     },
@@ -643,18 +777,22 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "uart-module.kicad_sch",
-        "name": "uart-module",
-        "uuid": "df55ac75-cc82-4873-90a5-bad781157963"
+        "filename": "smart-io-module.kicad_sch",
+        "name": "Root",
+        "uuid": "d7ba4e02-1466-47b2-8a45-a22342e50b5c"
       }
     ],
-    "used_designators": "R1-8,#PWR1-22,#PWR24-27,#PWR50-52,#PWR55,#PWR57,C1-5,U1-2,Y1,J1-3",
+    "used_designators": "H1,R1-16,JP1-8,D1-5,C1-10,#PWR1-47,#PWR94,J1-4,U1-10,#FLG1-4",
     "variants": []
   },
   "sheets": [
     [
-      "df55ac75-cc82-4873-90a5-bad781157963",
-      "uart-module"
+      "d7ba4e02-1466-47b2-8a45-a22342e50b5c",
+      "Root"
+    ],
+    [
+      "a7b96b31-d661-445e-8c71-6bd0afd6dc78",
+      "EXPANSION CONNECTOR"
     ]
   ],
   "text_variables": {},

@@ -909,28 +909,12 @@
 		(uuid "1df8a6aa-4ab4-490a-bba8-a2ac05d986df")
 	)
 	(no_connect
-		(at 151.13 83.82)
-		(uuid "127432b8-0508-4b9d-b628-442552b96929")
+		(at 151.13 78.74)
+		(uuid "02ea673c-7afe-4592-8c16-91c250b34ab6")
 	)
 	(no_connect
 		(at 151.13 86.36)
 		(uuid "1d8ac363-0801-484f-8f8a-86dc31fa7254")
-	)
-	(no_connect
-		(at 151.13 78.74)
-		(uuid "310e5e69-535f-443f-a382-e6279abc7b21")
-	)
-	(no_connect
-		(at 151.13 81.28)
-		(uuid "5d97e1eb-2937-439a-bd45-ccfc8024c887")
-	)
-	(no_connect
-		(at 151.13 88.9)
-		(uuid "8641d8c6-4e2d-44ba-a26a-d906fab99bae")
-	)
-	(no_connect
-		(at 151.13 96.52)
-		(uuid "8f1a79e1-f0b9-4143-a0f3-aa1c017d37a9")
 	)
 	(wire
 		(pts
@@ -1042,6 +1026,28 @@
 		)
 		(uuid "d1e654cc-4bec-4324-b7b7-b07067a28961")
 	)
+	(hierarchical_label "EXP_IO_CS4"
+		(shape output)
+		(at 151.13 88.9 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "12f45b1f-d935-447f-bdf3-264e5ff9fcda")
+	)
+	(hierarchical_label "IO_PIT_CS"
+		(shape output)
+		(at 151.13 83.82 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1e949e9a-dfcd-4c64-b36e-fe49d6ead894")
+	)
 	(hierarchical_label "IOM"
 		(shape input)
 		(at 111.76 91.44 180)
@@ -1064,6 +1070,17 @@
 		)
 		(uuid "93f4369e-280b-467d-b958-b9aade7a7bd2")
 	)
+	(hierarchical_label "IO_UART_CS"
+		(shape output)
+		(at 151.13 96.52 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a954dab2-ee8c-45cf-9652-deec5f9dbe53")
+	)
 	(hierarchical_label "A6"
 		(shape input)
 		(at 111.76 81.28 180)
@@ -1075,7 +1092,7 @@
 		)
 		(uuid "af5f549e-b702-4878-949b-66089e8a4047")
 	)
-	(hierarchical_label "IO_EXP1_CS"
+	(hierarchical_label "EXP_IO_CS6"
 		(shape output)
 		(at 151.13 93.98 0)
 		(effects
@@ -1086,7 +1103,7 @@
 		)
 		(uuid "b8a88bd1-ef95-4319-807a-c94ae1c7ffff")
 	)
-	(hierarchical_label "IO_EXP0_CS"
+	(hierarchical_label "EXP_IO_CS5"
 		(shape output)
 		(at 151.13 91.44 0)
 		(effects
@@ -1096,6 +1113,17 @@
 			(justify left)
 		)
 		(uuid "c5918250-2cb2-4950-b7fb-56a577a686b1")
+	)
+	(hierarchical_label "IO_PIC_CS"
+		(shape output)
+		(at 151.13 81.28 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f4a7d274-f90c-424a-84bb-01eaea76a6d4")
 	)
 	(hierarchical_label "A7"
 		(shape input)
@@ -1120,7 +1148,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "462f17e1-99a5-4657-bc1c-82a8a983e49c")
-		(property "Reference" "#PWR040"
+		(property "Reference" "#PWR041"
 			(at 106.68 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -1180,7 +1208,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR040")
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -1320,7 +1348,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9625718f-b369-43c7-ba8e-37d85afbc2b8")
-		(property "Reference" "#PWR041"
+		(property "Reference" "#PWR042"
 			(at 124.46 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -1381,7 +1409,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR041")
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -1399,7 +1427,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9b85bd7f-a77d-47e8-a13b-def71520e89a")
-		(property "Reference" "#PWR042"
+		(property "Reference" "#PWR043"
 			(at 124.46 110.49 0)
 			(hide yes)
 			(show_name no)
@@ -1459,7 +1487,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR042")
+					(reference "#PWR043")
 					(unit 1)
 				)
 			)
@@ -1477,7 +1505,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b2298915-a602-4630-b3f6-660e0389c9ca")
-		(property "Reference" "#PWR039"
+		(property "Reference" "#PWR040"
 			(at 105.41 96.52 0)
 			(hide yes)
 			(show_name no)
@@ -1538,7 +1566,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR039")
+					(reference "#PWR040")
 					(unit 1)
 				)
 			)
@@ -1555,7 +1583,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "caa6e4d3-1c8d-48a2-9a5e-ebf8dc57d5b0")
-		(property "Reference" "C10"
+		(property "Reference" "C8"
 			(at 116.84 61.214 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1577,7 +1605,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 113.03 68.2752 0)
 			(hide yes)
 			(show_name no)
@@ -1619,7 +1647,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "C10")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -1637,7 +1665,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cce09e9b-8b25-4cd5-8e9c-b6c247372196")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR039"
 			(at 105.41 93.98 0)
 			(hide yes)
 			(show_name no)
@@ -1698,7 +1726,7 @@
 		(instances
 			(project "8088-mainboard"
 				(path "/15ce4f45-6f32-456e-874c-aac11293789a/c64b3a1d-9cdf-4d26-8a62-60cbadd711b0"
-					(reference "#PWR038")
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
