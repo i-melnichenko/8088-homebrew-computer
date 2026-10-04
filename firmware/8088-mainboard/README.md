@@ -213,21 +213,24 @@ Memory check asks for confirmation because it destroys all uploaded programs.
 The dialog shows `ALL RAM PROGRAMS` and `WILL BE DELETED!` on rows 1–2,
 a blank row 3 and `YES:ENTER  NO:ESC` on row 4. Enter starts the destructive
 test; Esc returns to the menu without changing programs or their RAM contents.
-It tests ONLY `0x8800..0xFBFF`: write/read passes for `00`, `FF`, `55`, `AA`,
-then address-dependent data (ten passes). Row 2 shows overall progress across
+It tests the complete 32-KiB SRAM through its `0x8000..0xFFFF` alias. The
+program area (`0x8800..0xFBFF`) uses destructive write/read passes; the IVT,
+BDA, monitor/API state and stacks are checked one byte at a time and restored
+after each probe. The five test values are `00`, `FF`, `55`, `AA`, and
+address-dependent data. Row 2 shows overall progress across
 all ten passes with the same bracketed 18-cell bar; row 3 shows the current
 inclusive 16-byte RAM range,
 and row 4 shows six-digit decimal `OK`/`BAD` counters. These count byte
-verifications, not unique addresses: each of 29,696 bytes is checked five
-times, so a successful full test reports `OK:148480 BAD:000000`. Writes do
+verifications, not unique addresses: each of 32,768 bytes is checked five
+times, so a successful full test reports `OK:163840 BAD:000000`. Writes do
 not increment these counters. Testing continues after mismatches and retains
 the first failing address, expected and actual byte in BIOS state. After
-completion row 3 shows `DONE FBF0-FBFF`, or `FAIL xxxx-yyyy` for the block
+completion row 3 shows `DONE FFF0-FFFF`, or `FAIL xxxx-yyyy` for the block
 containing the first mismatch. After cancellation it shows `STOP xxxx-yyyy`
 for the last processed block. Completion keeps a full bar and the
 totals, while cancellation keeps partial progress and counters.
 Esc cancels. Cancellation also invalidates
-all old programs. This is a basic destructive diagnostic, not an exhaustive
+all old programs. This is a basic diagnostic, not an exhaustive
 RAM certification test. UART requests remain serviceable throughout the test.
 
 ## Program BIOS API

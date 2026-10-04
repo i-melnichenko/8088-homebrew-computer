@@ -606,9 +606,9 @@ class FirmwareTest(unittest.TestCase):
         protected = bytes(board.cpu.mem_read(0, 0x500))
         self.assertEqual(protected[:0x41a], ivt_bda[:0x41a])
         self.assertEqual(protected[0x43e:], ivt_bda[0x43e:])
-        board.advance(20000000)
+        board.advance(26000000)
         self.assertEqual(bytes(board.cpu.mem_read(0, 0x500)), protected)
-        self.assertEqual(board.screen()[3], "OK:148480 BAD:000000")
+        self.assertEqual(board.screen()[3], "OK:163840 BAD:000000")
 
     def test_api_capabilities_and_register_flags_preservation(self):
         result = self.run_api("""
@@ -1622,28 +1622,32 @@ class FirmwareTest(unittest.TestCase):
     def test_memory_success_and_cancel(self):
         board = self.board
         board.cpu.mem_write(0xfc00, b"STACK GUARD")
+        board.cpu.mem_write(0xfe00, b"BIOS STACK GUARD")
         board.start_memory_test()
+        api_state = bytes(board.cpu.mem_read(0x8700, 0x60))
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + " " * 18 + "]")
-        self.assertEqual(screen[2].strip(), "RAM: 8800-880F")
+        self.assertEqual(screen[2].strip(), "RAM: 8000-800F")
         self.assertEqual(screen[3], "OK:000000 BAD:000000")
         self.assertNotEqual(board.transact(PROGRAM_UPLOAD_BEGIN, struct.pack("<I", 4)), b"\0")
         self.assertEqual(board.transact(PING), b"\0")
-        board.advance(20000000)
+        board.advance(26000000)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + "#" * 18 + "]")
-        self.assertEqual(screen[2].strip(), "DONE FBF0-FBFF")
-        self.assertEqual(screen[3], "OK:148480 BAD:000000")
+        self.assertEqual(screen[2].strip(), "DONE FFF0-FFFF")
+        self.assertEqual(screen[3], "OK:163840 BAD:000000")
         self.assertEqual(bytes(board.cpu.mem_read(0xfc00, 11)), b"STACK GUARD")
+        self.assertEqual(bytes(board.cpu.mem_read(0xfe00, 16)), b"BIOS STACK GUARD")
+        self.assertEqual(bytes(board.cpu.mem_read(0x8700, 0x60)), api_state)
         board.key(4)
         board.key(3)
         board.key(3)
         board.key(4)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
-        self.assertTrue(screen[2].startswith("STOP 88"))
+        self.assertTrue(screen[2].startswith("STOP 80"))
         self.assertEqual(screen[3], "OK:000000 BAD:000000")
 
     def test_memory_failure(self):
@@ -1654,13 +1658,27 @@ class FirmwareTest(unittest.TestCase):
             cpu.mem_write(0x9000, b"\x01")
 
         board.cpu.hook_add(UC_HOOK_MEM_READ, bad_read, begin=0x9000, end=0x9000)
-        board.advance(20000000)
+        board.advance(26000000)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + "#" * 18 + "]")
         self.assertEqual(screen[2].strip(), "FAIL 9000-900F")
         self.assertEqual(bytes(board.cpu.mem_read(0x8684, 4)), bytes.fromhex("00010090"))
-        self.assertEqual(screen[3], "OK:148475 BAD:000005")
+        self.assertEqual(screen[3], "OK:163835 BAD:000005")
+
+    def test_memory_failure_in_reserved_sram(self):
+        board = self.board
+        board.start_memory_test()
+
+        def bad_read(cpu, access, address, size, value, user):
+            cpu.mem_write(0x8402, b"\x01")
+
+        board.cpu.hook_add(UC_HOOK_MEM_READ, bad_read, begin=0x8402, end=0x8402)
+        board.advance(26000000)
+        screen = board.screen()
+        self.assertEqual(screen[2].strip(), "FAIL 8400-840F")
+        self.assertEqual(bytes(board.cpu.mem_read(0x8684, 4)), bytes.fromhex("00010284"))
+        self.assertEqual(screen[3], "OK:163835 BAD:000005")
 
     def test_memory_progress_never_resets(self):
         board = self.board
@@ -1677,13 +1695,13 @@ class FirmwareTest(unittest.TestCase):
                 start, end = (int(address, 16) for address in screen[2][5:14].split("-"))
                 self.assertEqual(start & 15, 0)
                 self.assertEqual(end - start, 15)
-                self.assertGreaterEqual(start, PAYLOAD_BASE)
-                self.assertLess(end, 0xfc00)
+                self.assertGreaterEqual(start, 0x8000)
+                self.assertLess(end, 0x10000)
             previous = completed
             if screen[2].startswith("DONE"):
                 break
         self.assertEqual(previous, 18)
-        self.assertEqual(screen[3], "OK:148480 BAD:000000")
+        self.assertEqual(screen[3], "OK:163840 BAD:000000")
 
     def test_memory_counts_multiple_errors_and_keeps_first_log(self):
         board = self.board
@@ -1693,10 +1711,10 @@ class FirmwareTest(unittest.TestCase):
             cpu.mem_write(address, b"\x01")
 
         board.cpu.hook_add(UC_HOOK_MEM_READ, bad_reads, begin=0x9000, end=0x9001)
-        board.advance(20000000)
+        board.advance(26000000)
         screen = board.screen()
         self.assertEqual(screen[2].strip(), "FAIL 9000-900F")
-        self.assertEqual(screen[3], "OK:148470 BAD:000010")
+        self.assertEqual(screen[3], "OK:163830 BAD:000010")
 
     def test_run_returns_to_rom_menu(self):
         board = self.board
