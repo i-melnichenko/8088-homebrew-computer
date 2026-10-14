@@ -2245,7 +2245,7 @@
 	)
 	(hierarchical_label "IO_PIC_CS"
 		(shape input)
-		(at 66.04 152.4 180)
+		(at 39.37 170.18 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2267,7 +2267,7 @@
 	)
 	(hierarchical_label "INTR"
 		(shape output)
-		(at 66.04 154.94 180)
+		(at 39.37 172.72 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2344,7 +2344,7 @@
 	)
 	(hierarchical_label "INTA"
 		(shape input)
-		(at 66.04 157.48 180)
+		(at 39.37 175.26 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3258,7 +3258,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
-		(at 71.12 152.4 0)
+		(at 44.45 170.18 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3269,7 +3269,7 @@
 		(fields_autoplaced yes)
 		(uuid "8d8388b8-e527-4926-a83b-34bd2438fc67")
 		(property "Reference" "J10"
-			(at 73.66 152.3999 0)
+			(at 46.99 170.1799 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3280,7 +3280,7 @@
 			)
 		)
 		(property "Value" "Conn_01x04"
-			(at 73.66 154.9399 0)
+			(at 46.99 172.7199 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3291,7 +3291,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
-			(at 71.12 152.4 0)
+			(at 44.45 170.18 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3302,7 +3302,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 71.12 152.4 0)
+			(at 44.45 170.18 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3313,7 +3313,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 71.12 152.4 0)
+			(at 44.45 170.18 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3506,7 +3506,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 66.04 149.86 270)
+		(at 39.37 167.64 270)
 		(mirror x)
 		(unit 1)
 		(body_style 1)
@@ -3517,7 +3517,7 @@
 		(dnp no)
 		(uuid "d3d7c0d1-e3f2-4593-acac-047f4c3a4688")
 		(property "Reference" "#PWR0113"
-			(at 59.69 149.86 0)
+			(at 33.02 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3528,7 +3528,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 61.976 149.86 0)
+			(at 35.306 167.64 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3538,7 +3538,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 66.04 149.86 0)
+			(at 39.37 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3549,7 +3549,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 66.04 149.86 0)
+			(at 39.37 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3560,7 +3560,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 66.04 149.86 0)
+			(at 39.37 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
