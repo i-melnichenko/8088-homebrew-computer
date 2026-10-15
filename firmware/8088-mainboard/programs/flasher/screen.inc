@@ -1,6 +1,8 @@
 ; Standalone 20x4 LCD screen. All code and strings execute from the RAM image.
 ; Reuse the BIOS framebuffer, with one private redraw flag after flasher state.
 FLASHER_SCREEN_RESCAN equ EEPROM_STATE_END
+FLASHER_LCD_COMMAND_PORT equ 080h
+FLASHER_LCD_DATA_PORT equ 081h
 %if FLASHER_SCREEN_RESCAN >= MENU_BLINK_TICKS
     %error Flasher screen state overlaps menu blink state
 %endif
@@ -125,13 +127,13 @@ eeprom_screen_step:
     xor bx, bx
     mov bl, al
     mov al, [eeprom_screen_rows + bx]
-    out 0C0h, al
+    out FLASHER_LCD_COMMAND_PORT, al
     mov byte [es:SCREEN_COMMAND], 1
     jmp .delay
 .data:
     mov bx, ax
     mov al, [es:SCREEN_BUFFER + bx]
-    out 0C1h, al
+    out FLASHER_LCD_DATA_PORT, al
     inc byte [es:SCREEN_POSITION]
     mov al, [es:SCREEN_POSITION]
     xor ah, ah
@@ -155,9 +157,10 @@ eeprom_screen_rows: db 080h, 0C0h, 094h, 0D4h
 eeprom_screen_title: db 'BIOS FLASHER', 0
 eeprom_screen_range: db 'ROM: F0000-F0000', 0
 eeprom_screen_footer: db 'HOST RESET TO EXIT', 0
-eeprom_screen_ready: db 'READY - READ ONLY', 0
+eeprom_screen_ready: db 'READY', 0
 eeprom_screen_read_ok: db 'READ OK', 0
-eeprom_screen_write_unsupported: db 'WRITE UNSUPPORTED', 0
+eeprom_screen_write_ok: db 'WRITE OK', 0
+eeprom_screen_write_failed: db 'WRITE FAILED', 0
 eeprom_screen_bad_read: db 'INVALID READ', 0
 eeprom_screen_bad_write: db 'INVALID WRITE', 0
 eeprom_screen_bad_request: db 'INVALID REQUEST', 0

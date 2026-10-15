@@ -27,7 +27,7 @@ jmp start
 %include "memory.inc"
 %include "uart16550.inc"
 
-; Initialize revision-1 hardware and enter the menu without a splash screen.
+; Initialize the selected board revision and enter the menu.
 start:
     cli
     cld

@@ -258,6 +258,7 @@ menu_render:
     call menu_memory_progress
     mov si, memory_region
     mov ax, [es:MEM_BLOCK]
+    mov dl, [es:MEM_BLOCK_HI]
     call menu_memory_region
     jmp .memory_counts
 .result:
@@ -268,11 +269,13 @@ menu_render:
     jne .failure_log
     mov si, memory_ok
     mov ax, [es:MEM_BLOCK]
+    mov dl, [es:MEM_BLOCK_HI]
     call menu_memory_region
     jmp .memory_counts
 .failure_log:
     mov si, memory_failure
     mov ax, [es:MEM_FAIL_ADDR]
+    mov dl, [es:MEM_FAIL_HI]
     call menu_memory_region
     jmp .memory_counts
 .no_boot:
@@ -287,6 +290,7 @@ menu_render:
     call menu_memory_progress
     mov si, memory_stopped
     mov ax, [es:MEM_BLOCK]
+    mov dl, [es:MEM_BLOCK_HI]
     call menu_memory_region
     jmp .memory_counts
 .footer:
@@ -385,10 +389,10 @@ menu_nibble:
     stosb
     ret
 
-; DX:AX unsigned value -> six zero-padded decimal digits (8086 long divide).
-menu_decimal6:
-    add di, 5
-    mov bp, 6
+; DX:AX unsigned value -> seven zero-padded decimal digits (8086 long divide).
+menu_decimal7:
+    add di, 6
+    mov bp, 7
     mov bx, 10
 .digit:
     push ax
@@ -404,7 +408,7 @@ menu_decimal6:
     mov dx, si
     dec bp
     jnz .digit
-    add di, 7
+    add di, 8
     ret
 
 menu_memory_counts:
@@ -414,14 +418,14 @@ menu_memory_counts:
     mov di, SCREEN_BUFFER + 63
     mov ax, [es:MEM_OK]
     mov dx, [es:MEM_OK + 2]
-    call menu_decimal6
-    mov di, SCREEN_BUFFER + 74
+    call menu_decimal7
+    mov di, SCREEN_BUFFER + 73
     mov ax, [es:MEM_BAD]
     mov dx, [es:MEM_BAD + 2]
-    call menu_decimal6
+    call menu_decimal7
     ret
 
-; AX=address, SI=region label. Show inclusive bounds of its 16-byte block.
+; DL:AX=20-bit address, SI=region label. Show its inclusive 16-byte block.
 menu_memory_region:
     push ax
     mov di, SCREEN_BUFFER + 40
@@ -430,38 +434,39 @@ menu_memory_region:
     pop ax
     and ax, 0FFF0h
     push ax
-    call menu_hex16
+    call menu_hex20
     inc di                         ; leave the separating '-' intact
     pop ax
     add ax, 15
+    call menu_hex20
+    ret
+
+menu_hex20:
+    push ax
+    mov al, dl
+    call menu_nibble
+    pop ax
     call menu_hex16
     ret
 
-; Ten passes share the 18 cells inside the brackets. Divide in two stages to
-; keep the intermediate product within DX:AX on the 8086:
-; floor((phase*size + offset)*18 / (10*size))
-; = floor((phase*18 + floor(offset*18/size)) / 10).
+; 160 units per pass (ten 64-KiB banks, 16 units per bank).
 menu_memory_progress:
     xor ax, ax
     mov al, [es:MEM_PHASE]
-    mov bl, MENU_BAR_CELLS
-    mul bl
-    mov bl, 10
-    div bl
-    mov bh, al                      ; whole cells from completed passes
-    mov bl, ah                      ; remaining tenths of one cell
+    mov bx, 160
+    mul bx
+    mov bx, ax
+    xor ax, ax
+    mov al, [es:MEM_ADDR_HI]
+    mov cl, 4
+    shl ax, cl
+    add bx, ax
     mov ax, [es:MEM_ADDR]
-    sub ax, SRAM_TEST_BASE
-    mov cx, MENU_BAR_CELLS
-    mul cx
-    mov cx, SRAM_TEST_SIZE
-    div cx
-    add al, bl
-    mov cl, 10
-    div cl
-    add al, bh
-    xor ah, ah
-    jmp menu_bar_cells
+    mov cl, 12
+    shr ax, cl
+    add ax, bx
+    mov bx, 1600
+    jmp menu_bar
 
 ; AX=completed, BX=total, ES:DI=bar. MUL uses the full 32-bit product.
 menu_bar:
@@ -495,7 +500,7 @@ menu_bar_cells:
     stosb
     ret
 
-; No hardware timer/IRQ on rev1. Count idle iterations after a complete draw;
+; No timer/IRQ support in the current BIOS. Count idle iterations after a draw;
 ; toggles schedule two short LCD operations, never a full redraw or a sleep.
 ; The logical SCREEN_BUFFER retains '>'; blinking changes only the LCD cell.
 menu_blink_step:
@@ -610,8 +615,8 @@ memory_title: db 'MEMORY CHECK', 0
 memory_confirm_title: db 'ALL RAM PROGRAMS', 0
 memory_confirm_warning: db 'WILL BE DELETED!', 0
 memory_confirm_choices: db 'YES:ENTER  NO:ESC', 0
-memory_region: db 'RAM: 0000-0000', 0
-memory_ok: db 'DONE 0000-0000', 0
-memory_failure: db 'FAIL 0000-0000', 0
-memory_stopped: db 'STOP 0000-0000', 0
-memory_counts: db 'OK:000000 BAD:000000', 0
+memory_region: db 'RAM: 00000-00000', 0
+memory_ok: db 'DONE 00000-00000', 0
+memory_failure: db 'FAIL 00000-00000', 0
+memory_stopped: db 'STOP 00000-00000', 0
+memory_counts: db 'OK:0000000 B:0000000', 0

@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="940" viewBox="0 0 1400 940" role="img" aria-labelledby="title desc">
+  <title id="title">8088 Homebrew Computer expansion module mechanical drawing, Rev.2</title>
+  <desc id="desc">A 4800 by 2900 mil module outline with two expansion connectors, upper-right pin 1 orientation, and one M3 grounded mounting hole. All dimensions are in mils.</desc>
+  <defs>
+    <style>
+      .bg { fill: #071a2e; }
+      .board { fill: #1f2d3c; stroke: #e8eef5; stroke-width: 2; }
+      .outline { fill: none; stroke: #e8eef5; stroke-width: 2; }
+      .pin { fill: #d59a26; stroke: #fff1ae; stroke-width: 1.5; }
+      .pin1 { fill: #e34b39; stroke: #fff1ae; stroke-width: 1.5; }
+      .header { fill: none; stroke: #d59a26; stroke-width: 2; }
+      .hole { fill: #071a2e; stroke: #e34b39; stroke-width: 6; }
+      .hole-pad { fill: none; stroke: #d59a26; stroke-width: 2; }
+      .dim { fill: none; stroke: #67d5e6; stroke-width: 1.5; }
+      .extension { fill: none; stroke: #67d5e6; stroke-width: 1; stroke-dasharray: 5 4; }
+      .label { font-family: Arial, Helvetica, sans-serif; fill: #e8eef5; font-size: 18px; }
+      .small { font-family: Arial, Helvetica, sans-serif; fill: #c8d6e5; font-size: 14px; }
+      .dimtext { font-family: Arial, Helvetica, sans-serif; fill: #82e5f3; font-size: 16px; font-weight: bold; text-anchor: middle; }
+      .title { font-family: Arial, Helvetica, sans-serif; fill: #ffffff; font-size: 29px; font-weight: bold; }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto-start-reverse">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#67d5e6"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1400" height="940"/>
+  <!-- Board: 4800 × 2900 mil; drawing scale = 0.2 px/mil -->
+  <rect x="220" y="180" width="960" height="580" rx="31.5" class="board"/>
+  <text x="240" y="215" class="label">Component side (F.Cu)</text>
+
+  <!-- Connector B: extreme pins x=800…1700 mil, rows y=2700/2800 mil; pin 1 is upper right -->
+  <rect x="365" y="700" width="210" height="60" class="header"/>
+  <g transform="translate(0 20)">
+    <circle class="pin" cx="380" cy="700" r="6"/><circle class="pin" cx="380" cy="720" r="6"/>
+    <circle class="pin" cx="400" cy="700" r="6"/><circle class="pin" cx="400" cy="720" r="6"/>
+    <circle class="pin" cx="420" cy="700" r="6"/><circle class="pin" cx="420" cy="720" r="6"/>
+    <circle class="pin" cx="440" cy="700" r="6"/><circle class="pin" cx="440" cy="720" r="6"/>
+    <circle class="pin" cx="460" cy="700" r="6"/><circle class="pin" cx="460" cy="720" r="6"/>
+    <circle class="pin" cx="480" cy="700" r="6"/><circle class="pin" cx="480" cy="720" r="6"/>
+    <circle class="pin" cx="500" cy="700" r="6"/><circle class="pin" cx="500" cy="720" r="6"/>
+    <circle class="pin" cx="520" cy="700" r="6"/><circle class="pin" cx="520" cy="720" r="6"/>
+    <circle class="pin" cx="540" cy="700" r="6"/><circle class="pin" cx="540" cy="720" r="6"/>
+    <circle class="pin1" cx="560" cy="700" r="6"/><circle class="pin" cx="560" cy="720" r="6"/>
+  </g>
+  <text x="470" y="695" class="label" text-anchor="middle">B · 2×10</text>
+  <text x="570" y="725" class="small">pin 1</text>
+  <path class="extension" d="M560 720 H640"/>
+
+  <!-- Connector A: extreme pins x=2100…4000 mil, rows y=2700/2800 mil; pin 1 is upper right -->
+  <rect x="625" y="700" width="410" height="60" class="header"/>
+  <g transform="translate(60 20)">
+    <circle class="pin" cx="580" cy="700" r="6"/><circle class="pin" cx="580" cy="720" r="6"/>
+    <circle class="pin" cx="600" cy="700" r="6"/><circle class="pin" cx="600" cy="720" r="6"/>
+    <circle class="pin" cx="620" cy="700" r="6"/><circle class="pin" cx="620" cy="720" r="6"/>
+    <circle class="pin" cx="640" cy="700" r="6"/><circle class="pin" cx="640" cy="720" r="6"/>
+    <circle class="pin" cx="660" cy="700" r="6"/><circle class="pin" cx="660" cy="720" r="6"/>
+    <circle class="pin" cx="680" cy="700" r="6"/><circle class="pin" cx="680" cy="720" r="6"/>
+    <circle class="pin" cx="700" cy="700" r="6"/><circle class="pin" cx="700" cy="720" r="6"/>
+    <circle class="pin" cx="720" cy="700" r="6"/><circle class="pin" cx="720" cy="720" r="6"/>
+    <circle class="pin" cx="740" cy="700" r="6"/><circle class="pin" cx="740" cy="720" r="6"/>
+    <circle class="pin" cx="760" cy="700" r="6"/><circle class="pin" cx="760" cy="720" r="6"/>
+    <circle class="pin" cx="780" cy="700" r="6"/><circle class="pin" cx="780" cy="720" r="6"/>
+    <circle class="pin" cx="800" cy="700" r="6"/><circle class="pin" cx="800" cy="720" r="6"/>
+    <circle class="pin" cx="820" cy="700" r="6"/><circle class="pin" cx="820" cy="720" r="6"/>
+    <circle class="pin" cx="840" cy="700" r="6"/><circle class="pin" cx="840" cy="720" r="6"/>
+    <circle class="pin" cx="860" cy="700" r="6"/><circle class="pin" cx="860" cy="720" r="6"/>
+    <circle class="pin" cx="880" cy="700" r="6"/><circle class="pin" cx="880" cy="720" r="6"/>
+    <circle class="pin" cx="900" cy="700" r="6"/><circle class="pin" cx="900" cy="720" r="6"/>
+    <circle class="pin" cx="920" cy="700" r="6"/><circle class="pin" cx="920" cy="720" r="6"/>
+    <circle class="pin" cx="940" cy="700" r="6"/><circle class="pin" cx="940" cy="720" r="6"/>
+    <circle class="pin1" cx="960" cy="700" r="6"/><circle class="pin" cx="960" cy="720" r="6"/>
+  </g>
+  <text x="830" y="695" class="label" text-anchor="middle">A · 2×20</text>
+  <text x="1033" y="725" class="small">pin 1</text>
+
+  <!-- H1 -->
+  <circle class="hole-pad" cx="1140" cy="720" r="25.2"/>
+  <circle class="hole" cx="1140" cy="720" r="12.6"/>
+  <path class="extension" d="M1020 720 H1140"/>
+  <text x="1140" y="676" class="label" text-anchor="middle">H1 · M3 / GND</text>
+<!--  <text x="1098" y="749" class="small">Ø126 drill</text>-->
+
+  <!-- Overall dimensions -->
+  <path class="extension" d="M220 180 V128 M1180 180 V128"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M220 128 H1180"/>
+  <text x="700" y="118" class="dimtext">4800 mil</text>
+  <path class="extension" d="M220 180 H150 M220 760 H150"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M150 180 V760"/>
+  <text x="130" y="470" class="dimtext" transform="rotate(-90 130 470)">2900 mil</text>
+
+  <!-- Bottom horizontal chain -->
+  <path class="extension" d="M220 760 V816 M380 740 V816 M560 740 V816 M640 740 V816 M1020 740 V816 M1180 760 V816"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M220 816 H380"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M380 816 H560"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M560 816 H640"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M640 816 H1020"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M1020 816 H1180"/>
+  <text x="300" y="841" class="dimtext">800 mil</text><text x="470" y="841" class="dimtext">900 mil</text>
+  <text x="600" y="841" class="dimtext">400 mil</text><text x="830" y="841" class="dimtext">1900 mil</text>
+  <text x="1100" y="841" class="dimtext">800 mil</text>
+
+  <!-- Vertical and H1 offsets -->
+  <path class="extension" d="M1180 720 H1235 M1180 760 H1235"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M1235 720 V760"/>
+  <text x="1265" y="746" class="dimtext">200 mil</text>
+  <path class="extension" d="M380 740 H190 M220 760 H190"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M190 740 V760"/>
+  <text x="190" y="726" class="dimtext">100 mil</text>
+  <path class="extension" d="M1140 720 V785 M1180 760 V785"/>
+  <path class="dim" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M1140 785 H1180"/>
+  <text x="1160" y="808" class="dimtext">200 mil</text>
+</svg>

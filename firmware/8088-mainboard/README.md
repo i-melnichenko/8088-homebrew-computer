@@ -1,7 +1,8 @@
 # 8088 mainboard firmware
 
-There is one active ROM BIOS. It initializes both available console devices:
-the 20×4 HD44780-compatible LCD on Exp1 and the GM16C550 UART module on Exp0.
+There is one active ROM BIOS for mainboard Rev. 2. It initializes both console
+devices: a 20×4 HD44780-compatible LCD on a Display Module with JP1 bridged
+(`80h/81h`) and the on-board GM16C550 UART (`3F8h–3FFh`, 9600 8N1).
 The monitor runs directly from ROM at `F800:0000`; uploaded programs execute
 from paragraph-aligned SRAM addresses allocated by BIOS.
 
@@ -55,9 +56,10 @@ make serial SERIAL_PORT=/dev/cu.usbserial-XXXX
 ```
 
 `make serial` opens the UART console through `boardctl`, without `cu` lock
-files or `sudo`; use `Ctrl-C` to leave it. The UART uses `A0h` through `A7h` and is configured for 9600 8N1 from the
-module's 1.8432 MHz crystal. The LCD remains on `C0h` (commands) and `C1h`
-(data). See the [boardctl guide](../../tools/boardctl/README.md) for CLI commands.
+files or `sudo`; use `Ctrl-C` to leave it. The UART uses `3F8h–3FFh` and is
+configured for 9600 8N1 from its 1.8432 MHz crystal. The LCD uses `80h`
+(commands) and `81h` (data). See the
+[boardctl guide](../../tools/boardctl/README.md) for CLI commands.
 
 ### Boot menu
 
@@ -91,14 +93,15 @@ The submenu always contains four slots, initially Empty.
 The last LCD column shows `|` with `^`/`v` for hidden items above/below.
 The selected `>` blinks in the root and Custom programs menus, and becomes
 visible again on navigation. Only that LCD cell is updated; UART polling
-continues without a blocking delay. Revision 1 counts idle-loop iterations,
+continues without a blocking delay. The current BIOS counts idle-loop iterations,
 so the blink rate depends on CPU speed and monitor traffic, not a hardware
 timer. Info and other non-selectable pages do not blink.
 Use one serial client at a time; do not run a
 separate `upload` process while `keyboard` owns the port. Ordinary `upload`
 works from any menu page except during an active RAM test.
 
-Revision 1 has no hardware interrupts. The ROM loop polls keyboard packets;
+The current BIOS does not initialize the Rev. 2 PIC/PIT or use hardware
+interrupts. The ROM loop polls keyboard packets;
 RAM programs must call INT 16h/AH=01h regularly, or wait with AH=00h, to poll
 the transport. AH=01h does not consume a key. A program that does not poll
 cannot accept keyboard packets; host timeouts and UART overflow are possible.
@@ -127,7 +130,7 @@ The moon and sun stay in place. Each scene lasts about five seconds before a
 right-to-left column wipe reveals the next one. The lower-right `ESC:BACK`
 hint appears for about three seconds, hides for
 about ten, and repeats; Esc always returns to BIOS. Timing is approximate on
-rev1 because it has no hardware timer.
+this BIOS because it does not yet use the hardware timer.
 
 The `terminal` example displays keyboard input on the LCD and echoes it over
 UART. Its header and controls stay on the top two rows; Esc returns to BIOS.
@@ -139,9 +142,10 @@ resident programs; allocations remain paragraph-aligned. `PROGRAM_DELETE`
 frees a slot/range and shifts following IDs; `PROGRAM_RENAME` changes only its
 name. Both operations refresh the LCD and require no active upload/test/program.
 The current upload area is `0x8800..0xFBFF` (29,696 bytes total, less alignment gaps).
-The first 2 KiB of physical SRAM are reserved for IVT, BDA and BIOS state;
-`0xFC00..0xFFFF` is reserved for program and BIOS stacks. The decoder mirrors
-the 32-KiB SRAM every 32 KiB within `0x00000..0x1FFFF`.
+The IVT/BDA occupy `0x0000..0x04FF`, BIOS/API state occupies
+`0x8500..0x87FF`, and `0xFC00..0xFFFF` is reserved for program and BIOS
+stacks. Rev. 2 has distinct SRAM throughout `0x00000..0x9FFFF`; the current
+program registry still allocates only in the first 64 KiB.
 BIOS maintains the sequential upload cursor; DATA packets contain only program
 bytes, 128 per block except the final remainder. Uploads must be
 fully received with matching image CRC before a slot becomes runnable. Retried PROGRAM_UPLOAD_DATA packets
@@ -151,13 +155,15 @@ brackets. See [protocol v1](../../docs/uart-protocol-v1.md) for the wire format 
 commands. Protocol version remains 1 during development; update BIOS and
 boardctl together.
 
-`MEMORY_READ` lets boardctl dump RAM (including BIOS state and mirrors)
-in blocks of up to 127 bytes. It is available in the ROM menu, not during a
+`MEMORY_READ` accepts physical RAM addresses throughout `0x00000..0x9FFFF`,
+including BIOS state, in blocks of up to 127 bytes. It is available in the ROM menu, not during a
 memory check or program execution. ROM, unmapped and out-of-range reads are rejected;
-live BIOS state is not an atomic snapshot. See the boardctl
+live BIOS state is not an atomic snapshot. The unchanged `boardctl dump`
+currently validates only addresses below `0x20000`; direct protocol clients
+can read the remaining SRAM. See the boardctl
 [dump examples](../../tools/boardctl/README.md#commands).
 
-`MEMORY_WRITE` permits raw writes only to payload SRAM and its aliases, never
+`MEMORY_WRITE` permits raw writes only to `0x8800..0xFBFF`, never
 ROM, IVT/BDA, BIOS state or stacks. Writes are rejected while an upload, memory
 check or program is active. It does not register programs; boardctl `write`
 verifies written bytes by SHA-256 readback.
@@ -170,38 +176,52 @@ and BIOS.
 
 `BIOS_FLASHER_MODE()` copies the built-in EEPROM monitor to RAM and
 transfers control to it. The command has no payload; the full EEPROM
-image size is fixed at 32 KiB. Entry works on revision 1 and clears the
+image size is fixed at 32 KiB. Entry clears the
 resident program registry and keyboard sharing because the monitor occupies
 payload RAM. Entry during a program upload, memory test or running program
 is rejected. The RAM monitor's ACK confirms it is ready.
 
 Only `BIOS_WRITE`, `BIOS_READ`, `RESET` and `PING` work in this mode; other
-requests return status 20. An identical entry retry repeats its ACK. On
-revision 1, a valid WRITE returns status 17 (unsupported), READ reads EEPROM in blocks
-of 1–127 bytes, and RESET returns to the unchanged ROM BIOS. In the ordinary
-ROM menu, READ and WRITE return status 17; enter EEPROM mode to read.
+requests return status 20. An identical entry retry repeats its ACK. A valid
+WRITE programs and verifies EEPROM byte by byte; READ reads EEPROM in blocks
+of 1–127 bytes. In the ordinary ROM menu, READ and WRITE return status 17;
+enter EEPROM mode first.
 Both commands carry physical addresses and validate the entire block within
 `0xF8000..0xFFFFF` in the RAM flasher; invalid requests return status 18.
 The UART configuration/FIFO are preserved during
 entry; hardware interrupts stay disabled and all monitor code runs from RAM.
 
+On the Rev. 2 board, **SW1's ROM write switch** connects `ROM_WE_SW` to `WR#`
+when closed. Close that switch for EEPROM writing; keep it open for normal
+read-only operation. With the switch open, a changed byte cannot pass the
+flasher's readback check and `BIOS_WRITE` returns status 19. EEPROM Software
+Data Protection must be disabled for this byte-write driver. Build an exact
+32-KiB image, then run from the repository root:
+
+```sh
+go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX bios-write --reset \
+  firmware/8088-mainboard/build/bios.bin
+```
+
+The host sends consecutive 64-byte blocks, reads the whole EEPROM back and
+compares SHA-256 before requesting RESET. The RAM flasher rejects gaps,
+overlaps and out-of-range blocks before writing. It caches the last result so
+an identical retry does not write bytes twice. `RESET` is denied after writing
+begins until all 32 KiB have been acknowledged. An interrupted transfer can
+leave an unbootable EEPROM; preserve an external programmer for recovery.
+
 The LCD switches to a `BIOS FLASHER` status screen in the same four-row style
 as BIOS: section header, operation result, EEPROM address range and
-`HOST RESET TO EXIT`. Entry shows `READY - READ ONLY`; successful reads show
-`READ OK` and the inclusive physical range of the block. Revision-1 writes
-show `WRITE UNSUPPORTED`, while invalid requests display an error. PING and
+`HOST RESET TO EXIT`. Entry shows `READY`; successful reads and writes show
+`READ OK` or `WRITE OK` and the inclusive physical range of the block. A
+programming/readback failure shows `WRITE FAILED`; invalid requests display an error. PING and
 identical entry retries preserve the latest operation result. LCD updates
 run one short operation per UART polling iteration, entirely from RAM.
 RESET returns to the BIOS menu; keyboard navigation is disabled in this mode.
 
-The revision-2 contract uses the same mode and commands, adding EEPROM writes
-in WRITE; the write driver is not implemented yet. Blocks are written and
-verified immediately. The host can read the
-complete image with READ and compare SHA-256 before RESET; after a write,
-RESET requires all 32 KiB to have been written and verified by readback.
 See the [wire contract](../../docs/uart-protocol-v1.md#bios-flasher-mode).
 The flasher lives in [`programs/flasher/main.asm`](programs/flasher/main.asm);
-EEPROM hardware drivers belong in `lib/`. The flasher is assembled separately
+The EEPROM driver belongs to the RAM image. The flasher is assembled separately
 with `ORG 0` so it can execute from RAM without calling ROM services.
 `make bios` builds the normal 32-KiB EEPROM image containing the RAM monitor;
 it does not build a second BIOS image. boardctl exposes `bios-flasher-mode`, `bios-read`
@@ -213,20 +233,20 @@ Memory check asks for confirmation because it destroys all uploaded programs.
 The dialog shows `ALL RAM PROGRAMS` and `WILL BE DELETED!` on rows 1–2,
 a blank row 3 and `YES:ENTER  NO:ESC` on row 4. Enter starts the destructive
 test; Esc returns to the menu without changing programs or their RAM contents.
-It tests the complete 32-KiB SRAM through its `0x8000..0xFFFF` alias. The
-program area (`0x8800..0xFBFF`) uses destructive write/read passes; the IVT,
-BDA, monitor/API state and stacks are checked one byte at a time and restored
-after each probe. The five test values are `00`, `FF`, `55`, `AA`, and
-address-dependent data. Row 2 shows overall progress across
+It tests all `0x00000..0x9FFFF` (640 KiB across five 128-KiB banks). The
+first bank below `0x8800` and its stack at `0xFC00..0xFFFF` are checked
+one byte at a time and restored after each probe. All other RAM uses
+destructive write/read passes. The five test values are `00`, `FF`, `55`,
+`AA`, and address-dependent data. Row 2 shows overall progress across
 all ten passes with the same bracketed 18-cell bar; row 3 shows the current
-inclusive 16-byte RAM range,
-and row 4 shows six-digit decimal `OK`/`BAD` counters. These count byte
-verifications, not unique addresses: each of 32,768 bytes is checked five
-times, so a successful full test reports `OK:163840 BAD:000000`. Writes do
+inclusive 16-byte RAM range, and row 4 shows seven-digit decimal `OK` and
+`B` counters. These count byte verifications, not unique addresses: each of
+655,360 bytes is checked five times, so a successful full test reports
+`OK:3276800 B:0000000`. Writes do
 not increment these counters. Testing continues after mismatches and retains
 the first failing address, expected and actual byte in BIOS state. After
-completion row 3 shows `DONE FFF0-FFFF`, or `FAIL xxxx-yyyy` for the block
-containing the first mismatch. After cancellation it shows `STOP xxxx-yyyy`
+completion row 3 shows `DONE 9FFF0-9FFFF`, or `FAIL xxxxx-yyyyy` for the block
+containing the first mismatch. After cancellation it shows `STOP xxxxx-yyyyy`
 for the last processed block. Completion keeps a full bar and the
 totals, while cancellation keeps partial progress and counters.
 Esc cancels. Cancellation also invalidates
@@ -241,15 +261,15 @@ LCD services, including custom CGRAM glyphs. Include `lib/bios_api.inc`;
 the examples no longer include their own copies of the hardware drivers.
 Programs use `ORG 0`, start with `DS=CS`, preserve `SS/SP`, and use `RETF`
 to return to the menu. Handlers live in ROM and return with IRET, preserving caller segments,
-stack and non-output registers/flags. Revision 1 needs no PIC for software INT.
+stack and non-output registers/flags. Software INT does not require PIC setup.
 See [bios-api.md](docs/bios-api.md) for exact registers, flags, supported
-functions, memory aliases and limitations. This is not a full PC/MS-DOS BIOS.
+functions, memory layout and limitations. This is not a full PC/MS-DOS BIOS.
 
 ## Software verification
 
 The Docker tests execute the actual ROM image with Unicorn and emulated
 UART/LCD. They cover keyboard navigation, LCD output, upload retries and bounds,
-RAM pass/fail/cancel, program return, SRAM mirrors and INT API contracts.
+RAM pass/fail/cancel, program return, distinct SRAM banks and INT API contracts.
 The emulator implements CPU IVT dispatch; real ROM handlers and IRET execute.
 It does not verify hardware timing.
 
@@ -267,7 +287,7 @@ virtual board. `EMULATOR_IMAGE` overrides the local Docker image name.
 ## Current scope
 
 There is no automatic boot countdown, bootable storage or MS-DOS loader yet.
-Revision 1 polls UART and does not use hardware interrupts. The implemented
-software INT services are a starting point, not a complete PC-compatible BIOS.
-Revision 2 can extend these services, add hardware interrupt support, memory
-discovery and storage boot while keeping one BIOS implementation.
+This Rev. 2 BIOS polls UART and does not yet use PIC/PIT interrupts, test all
+640 KiB, or allocate programs outside the first 64 KiB. The
+implemented software INT services are a starting point, not a complete
+PC-compatible BIOS.

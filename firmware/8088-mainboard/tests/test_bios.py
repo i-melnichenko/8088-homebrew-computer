@@ -99,27 +99,31 @@ def decode(packet):
 class Board:
     def __init__(self, initial_ram=None):
         self.cpu = Uc(UC_ARCH_X86, UC_MODE_16)
-        # One real SRAM backing store, selected in a 128-KiB bank. A15/A16
-        # are not connected to the 32-KiB SRAM: all four aliases share bytes.
-        self.sram = mmap.mmap(-1, 0x8000)
+        self.uart_base = 0x3f8
+        self.lcd_port = 0x80
+        ram_size = 0xa0000
+        self.sram = mmap.mmap(-1, ram_size)
         pointer = ctypes.addressof(ctypes.c_char.from_buffer(self.sram))
-        for address in range(0, 0x20000, 0x8000):
-            self.cpu.mem_map_ptr(address, 0x8000, 7, pointer)
+        self.cpu.mem_map_ptr(0, 0xa0000, 7, pointer)
+        self.cpu.mem_map(0xa0000, 0x60000)
         if initial_ram is not None:
-            assert len(initial_ram) == 0x8000
+            assert len(initial_ram) == ram_size
             self.cpu.mem_write(0, initial_ram)
-        self.cpu.mem_map(0x20000, 0xe0000)
-        self.cpu.mem_write(0xf8000, BIOS.read_bytes())
+        image = BIOS.read_bytes()
+        for address in range(0xe0000, 0x100000, 0x8000):
+            self.cpu.mem_write(address, image)
         self.cpu.reg_write(UC_X86_REG_CS, 0xffff)
         self.cpu.reg_write(UC_X86_REG_IP, 0)
         self.rx, self.tx = deque(), bytearray()
         self.lcr, self.sequence, self.stop_on_reply = 0, 0, False
+        self.uart_divisor = [None, None]
         self.reply_started, self.reply_length = False, 0
         self.tx_ready = True
         self.lcd, self.cursor = bytearray(b" " * 128), 0
         self.lcd_operations = None  # opt-in trace for menu blink tests
         self.cgram, self.cgram_cursor = bytearray(64), None
         self.interrupts = []
+        self.eeprom_writes = []
         self.cpu.hook_add(UC_HOOK_INSN, self.input, None, 1, 0, UC_X86_INS_IN)
         self.cpu.hook_add(UC_HOOK_INSN, self.output, None, 1, 0, UC_X86_INS_OUT)
         self.cpu.hook_add(UC_HOOK_MEM_WRITE, self.memory_write)
@@ -128,7 +132,11 @@ class Board:
         self.tx.clear()
 
     def memory_write(self, cpu, access, address, size, value, user):
-        assert 0 <= address and address + size <= 0x20000, hex(address)
+        if (BIOS_ADDRESS <= address and address + size <= 0x100000
+                and cpu.reg_read(UC_X86_REG_CS) == PAYLOAD_BASE >> 4):
+            self.eeprom_writes.append((address, size, value))
+            return
+        assert 0 <= address and address + size <= 0xa0000, hex(address)
 
     def interrupt(self, cpu, number, user):
         # Unicorn reports software INT but does not perform real-mode IVT
@@ -148,20 +156,22 @@ class Board:
         cpu.reg_write(UC_X86_REG_IP, offset)
 
     def input(self, cpu, port, size, user):
-        if port == 0xa5:
+        if port == self.uart_base + 5:
             return (0x60 if self.tx_ready else 0) | bool(self.rx)
-        if port == 0xa0 and self.rx:
+        if port == self.uart_base and self.rx:
             return self.rx.popleft()
         return 0
 
     def output(self, cpu, port, size, value, user):
-        if port in (0xc0, 0xc1) and self.lcd_operations is not None:
+        if port in (self.lcd_port, self.lcd_port + 1) and self.lcd_operations is not None:
             self.lcd_operations.append((port, value))
-        if port == 0xa3:
+        if port == self.uart_base + 3:
             self.lcr = value
-        if port == 0xa2 and value & 2:
+        if self.lcr & 0x80 and port in (self.uart_base, self.uart_base + 1):
+            self.uart_divisor[port - self.uart_base] = value
+        if port == self.uart_base + 2 and value & 2:
             self.rx.clear()
-        if port == 0xa0 and not self.lcr & 0x80:
+        if port == self.uart_base and not self.lcr & 0x80:
             self.tx.append(value)
             if self.stop_on_reply:
                 if value == 0:
@@ -170,7 +180,7 @@ class Board:
                     self.reply_started = True
                 elif self.reply_started:
                     self.reply_length += 1
-        if port == 0xc0:
+        if port == self.lcd_port:
             if value == 1:
                 self.lcd[:] = b" " * 128
                 self.cgram_cursor = None
@@ -179,7 +189,7 @@ class Board:
                 self.cgram_cursor = None
             elif value & 0x40:
                 self.cgram_cursor = value & 0x3f
-        if port == 0xc1:
+        if port == self.lcd_port + 1:
             if self.cgram_cursor is not None:
                 self.cgram[self.cgram_cursor] = value & 31
                 self.cgram_cursor = (self.cgram_cursor + 1) & 63
@@ -249,8 +259,8 @@ class Board:
         for offset in range(0, len(payload), 128):
             assert self.transact(PROGRAM_UPLOAD_DATA, payload[offset:offset + 128]) == b"\0"
         assert self.transact(PROGRAM_UPLOAD_COMMIT, address=ident) == b"\0"
-        # Shared backing aliases are not tracked by Unicorn's translation
-        # cache. Real 8088 instruction fetch sees the newly written bytes.
+        # Unicorn's translation cache may retain bytes overwritten by upload.
+        # Real 8088 instruction fetch sees the newly written bytes.
         self.cpu.ctl_flush_tb()
         return ident, address
 
@@ -396,9 +406,10 @@ class FirmwareTest(unittest.TestCase):
             self.assertEqual(board.transact(command), b"\x14")
         for request in (b"", b"X"):
             self.assertEqual(board.transact(BIOS_WRITE, request), b"\x12")
-        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS) + b"X" * 124), b"\x11")
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS) + b"X" * 124), b"\0")
+        self.assertEqual(len(board.eeprom_writes), 124)
         self.assertEqual(board.transact(PING), b"\0")
-        self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, len(monitor))), monitor)
+        self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, 256)), monitor[:256])
 
     def test_eeprom_mode_lost_entry_ack_retry_and_readback_hash(self):
         board = self.board
@@ -431,7 +442,7 @@ class FirmwareTest(unittest.TestCase):
         board.cpu.ctl_flush_tb()
         self.assertEqual(board.transact(PING), b"\0")
         self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", BIOS_ADDRESS, 127)), b"\0" + b"Z" * 127)
-        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS) + b"X"), b"\x11")
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", 0xe0000) + b"X"), b"\x12")
         self.assertEqual(board.transact(INFO), b"\x14")
         self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", 0xfffff, 1)), b"\0Z")
         self.assertEqual(fetched_rom, [])
@@ -502,7 +513,7 @@ class FirmwareTest(unittest.TestCase):
         self.assertEqual(board.transact(BIOS_READ, request, sequence=42), b"\0Z")
         self.assertEqual(board.transact(PING), b"\0")
 
-    def test_flasher_write_validates_physical_range_before_unsupported(self):
+    def test_flasher_write_validates_physical_range_and_order(self):
         board = self.board
         board.eeprom_mode()
         rom = bytes(board.cpu.mem_read(BIOS_ADDRESS, 32768))
@@ -513,17 +524,20 @@ class FirmwareTest(unittest.TestCase):
                               (0xf7fff, 2), (0xfffff, 2), (0x100000, 1),
                               (0x1f8000, 1), (0xffffffff, 1)):
             self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", address) + b"X" * size), b"\x12")
-        for address, size in ((BIOS_ADDRESS, 124), (0x100000 - 124, 124), (0xfffff, 1)):
-            self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", address) + b"X" * size), b"\x11")
-        self.assertEqual(bytes(board.cpu.mem_read(BIOS_ADDRESS, 32768)), rom)
-        self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, len(monitor))), monitor)
+        for address, size in ((0x100000 - 124, 124), (0xfffff, 1)):
+            self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", address) + b"X" * size), b"\x12")
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS) + b"X" * 124), b"\0")
+        self.assertEqual(bytes(board.cpu.mem_read(BIOS_ADDRESS, 124)), b"X" * 124)
+        self.assertEqual(bytes(board.cpu.mem_read(BIOS_ADDRESS + 124, 32768 - 124)), rom[124:])
+        self.assertEqual(board.transact(RESET), b"\x12")
+        self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, 256)), monitor[:256])
         self.assertEqual(board.transact(PING), b"\0")
 
     def test_flasher_lcd_entry_operations_errors_and_reset(self):
         board = self.board
         board.eeprom_mode()
         self.assertEqual([row.strip() for row in board.screen()], [
-            "BIOS FLASHER", "READY - READ ONLY", "ROM: F8000-FFFFF",
+            "BIOS FLASHER", "READY", "ROM: F8000-FFFFF",
             "HOST RESET TO EXIT",
         ])
         board.lcd_operations = []
@@ -536,9 +550,9 @@ class FirmwareTest(unittest.TestCase):
         ])
         self.assertEqual(board.transact(PING), b"\0")
         self.assertEqual(board.screen()[1].strip(), "READ OK")
-        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", 0xfffff) + b"X"), b"\x11")
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS) + b"X"), b"\0")
         self.assertEqual([row.strip() for row in board.screen()], [
-            "BIOS FLASHER", "WRITE UNSUPPORTED", "ROM: FFFFF-FFFFF",
+            "BIOS FLASHER", "WRITE OK", "ROM: F8000-F8000",
             "HOST RESET TO EXIT",
         ])
         for command, request, status in (
@@ -550,9 +564,8 @@ class FirmwareTest(unittest.TestCase):
             self.assertNotEqual(board.transact(command, request)[0], 0)
             self.assertEqual(board.screen()[1].strip(), status)
             self.assertEqual(board.screen()[2].strip(), "ROM: F8000-FFFFF")
-        self.assertEqual(board.transact(RESET), b"\0")
-        board.advance(700000)
-        self.assertEqual(board.screen()[0].strip(), "8088 BIOS " + BIOS_VERSION)
+        self.assertEqual(board.transact(RESET), b"\x12")
+        self.assertEqual(board.cpu.reg_read(UC_X86_REG_CS), PAYLOAD_BASE >> 4)
 
     def test_flasher_lcd_redraw_keeps_up_with_read_traffic(self):
         board = self.board
@@ -563,14 +576,14 @@ class FirmwareTest(unittest.TestCase):
             request = struct.pack("<IH", BIOS_ADDRESS + offset, 127)
             self.assertEqual(board.transact(BIOS_READ, request),
                              b"\0" + BIOS.read_bytes()[offset:offset + 127])
-        self.assertTrue(any(port == 0xc1 for port, _ in board.lcd_operations))
+        self.assertTrue(any(port == 0x81 for port, _ in board.lcd_operations))
         self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", 0xfffff, 1)), b"\0\xff")
         self.assertEqual([row.strip() for row in board.screen()], [
             "BIOS FLASHER", "READ OK", "ROM: FFFFF-FFFFF", "HOST RESET TO EXIT",
         ])
         self.assertEqual(board.transact(BIOS_FLASHER_MODE, sequence=42), b"\0")
         self.assertEqual(board.screen()[1].strip(), "READ OK")
-        self.assertFalse(any(port == 0xc0 and value == 1
+        self.assertFalse(any(port == 0x80 and value == 1
                              for port, value in board.lcd_operations))
 
     def test_bios_read_unsupported_during_memory_check(self):
@@ -580,17 +593,17 @@ class FirmwareTest(unittest.TestCase):
         self.assertEqual(board.transact(PING), b"\0")
         self.assertEqual(board.cpu.mem_read(0x867a, 1), b"\4")
 
-    def test_ivt_mirrors_and_reserved_memory_protection(self):
+    def test_ivt_and_reserved_memory_protection(self):
         board = self.board
         ivt_bda = bytes(board.cpu.mem_read(0, 0x500))
         for base in (0x8000, 0x10000, 0x18000):
-            self.assertEqual(bytes(board.cpu.mem_read(base, 0x500)), ivt_bda)
+            self.assertNotEqual(bytes(board.cpu.mem_read(base, 0x500)), ivt_bda)
         for number in (0x10, 0x14, 0x16, 0x60):
             offset, segment = struct.unpack("<HH", ivt_bda[number*4:number*4+4])
             self.assertEqual(segment, 0xf800)
             self.assertLess(offset, 0x7ff0)
-        self.assertEqual(struct.unpack("<H", ivt_bda[0x413:0x415])[0], 32)
-        self.assertEqual(struct.unpack("<H", ivt_bda[0x400:0x402])[0], 0xa0)
+        self.assertEqual(struct.unpack("<H", ivt_bda[0x413:0x415])[0], 640)
+        self.assertEqual(struct.unpack("<H", ivt_bda[0x400:0x402])[0], 0x3f8)
         self.assertEqual(struct.unpack("<H", ivt_bda[0x44a:0x44c])[0], 20)
         self.assertEqual(ivt_bda[0x484], 3)
         board.begin("Pending", b"test")
@@ -606,9 +619,9 @@ class FirmwareTest(unittest.TestCase):
         protected = bytes(board.cpu.mem_read(0, 0x500))
         self.assertEqual(protected[:0x41a], ivt_bda[:0x41a])
         self.assertEqual(protected[0x43e:], ivt_bda[0x43e:])
-        board.advance(26000000)
+        board.advance(550000000)
         self.assertEqual(bytes(board.cpu.mem_read(0, 0x500)), protected)
-        self.assertEqual(board.screen()[3], "OK:163840 BAD:000000")
+        self.assertEqual(board.screen()[3], "OK:3276800 B:0000000")
 
     def test_api_capabilities_and_register_flags_preservation(self):
         result = self.run_api("""
@@ -900,9 +913,9 @@ class FirmwareTest(unittest.TestCase):
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "INFO")
         self.assertEqual(screen[1][:-1].strip(), f"BIOS: {BIOS_VERSION}")
-        self.assertEqual(screen[2][:-1].strip(), "BOARD: REV 1")
+        self.assertEqual(screen[2][:-1].strip(), "BOARD: REV 2")
         self.assertEqual(screen[3][:-1].strip(), "CPU: 8088")
-        self.assertIn(b"UART A0 9600", board.transact(INFO))
+        self.assertIn(b"UART 3F8 9600", board.transact(INFO))
         self.assertTrue(board.transact(INFO).startswith(b"\0BIOS " + BIOS_VERSION.encode() + b";"))
         board.key(4)
         board.key(2)
@@ -925,7 +938,7 @@ class FirmwareTest(unittest.TestCase):
         self.assertEqual(seen, {ord('>'), ord(' ')})
         self.assertGreater(len(board.lcd_operations), 2)
         for port, value in board.lcd_operations:
-            if port == 0xc0:
+            if port == 0x80:
                 self.assertEqual(value, 0xc0)  # selected row, column zero only
             else:
                 self.assertIn(value, (ord('>'), ord(' ')))
@@ -966,10 +979,10 @@ class FirmwareTest(unittest.TestCase):
         board = self.board
         board.key(1)
         board.key(3)
-        rows = [f"BIOS: {BIOS_VERSION}", "BOARD: REV 1", "CPU: 8088",
-                "RAM: 32 KiB", "ROM: 32 KiB", "LCD: 20x4", "UART: 9600 8N1",
+        rows = [f"BIOS: {BIOS_VERSION}", "BOARD: REV 2", "CPU: 8088",
+                "RAM: 640 KiB", "ROM: 32 KiB", "LCD: 20x4", "UART: 9600 8N1",
                 "PROTOCOL: 1", "API: 1", "PROGRAMS: 0/4", "ROM AT: F800:0000",
-                "UPLOAD: 8800-FBFF", "UART I/O: A0-A7", "LCD I/O: C0-C1"]
+                "UPLOAD: 8800-FBFF", "UART I/O: 3F8-3FF", "LCD I/O: 80-81"]
         initial = board.screen()
         board.key(1)
         self.assertEqual(board.screen(), initial)
@@ -1025,7 +1038,7 @@ class FirmwareTest(unittest.TestCase):
                 data = image.read_bytes()
                 self.assertEqual(len(data), 32768)
                 self.assertIn(f"8088 BIOS {version}\0".encode(), data)
-                self.assertIn(f"BIOS {version}; rev1;".encode(), data)
+                self.assertIn(f"BIOS {version}; rev2;".encode(), data)
             result = subprocess.run(["make", "-C", str(BIOS.parent.parent),
                                      f"BUILD_DIR={directory}", "BIOS_VERSION=too-long-version",
                                      "bios"], capture_output=True)
@@ -1059,7 +1072,7 @@ class FirmwareTest(unittest.TestCase):
         # uninitialized API_RUNNING would produce the observed 00 FF ACK.
         for fill in (0xff, 0x55, 0xaa):
             with self.subTest(fill=fill):
-                board = Board(bytes([fill]) * 0x8000)
+                board = Board(bytes([fill]) * 0xa0000)
                 self.assertEqual(board.transact(KEYBOARD_MODE, b"\1"), b"\0\0")
                 self.assertEqual(board.transact(KEYBOARD_EVENT, b"\0\x50"), b"\0\0")
                 self.assertIn("> Custom programs", board.screen()[2])
@@ -1381,42 +1394,39 @@ class FirmwareTest(unittest.TestCase):
         for command, data in ((PROGRAM_DELETE, b"\1"), (PROGRAM_RENAME, b"\1Name")):
             self.assertEqual(board.transact(command, data), b"\x0a")
 
-    def test_memory_write_payload_aliases_retry_and_readback(self):
+    def test_memory_write_payload_retry_and_readback(self):
         board = self.board
         ivt_bda = bytes(board.cpu.mem_read(0, 0x500))
         rom = bytes(board.cpu.mem_read(0xf8000, 0x8000))
-        for alias in (0x1000, 0x9000, 0x11000, 0x19000):
-            image = bytes(range(124))
-            request = struct.pack("<I", alias) + image
-            self.assertEqual(board.transact(MEMORY_WRITE, request, sequence=42), b"\0")
-            self.assertEqual(board.transact(MEMORY_WRITE, request, sequence=42), b"\0")
-            self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", alias, len(image))), b"\0" + image)
-            self.assertEqual(bytes(board.cpu.mem_read(0x9000, len(image))), image)
-        for alias in (0x800, 0x8800, 0x10800, 0x18800, 0x7bff, 0xfbff, 0x17bff, 0x1fbff):
-            self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", alias) + b"Z"), b"\0")
-            self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", alias, 1)), b"\0Z")
+        image = bytes(range(124))
+        request = struct.pack("<I", 0x9000) + image
+        self.assertEqual(board.transact(MEMORY_WRITE, request, sequence=42), b"\0")
+        self.assertEqual(board.transact(MEMORY_WRITE, request, sequence=42), b"\0")
+        self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", 0x9000, len(image))), b"\0" + image)
+        for address in (0x8800, 0xfbff):
+            self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", address) + b"Z"), b"\0")
+            self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", address, 1)), b"\0Z")
+        self.assertEqual(bytes(board.cpu.mem_read(0x9000, len(image))), image)
         self.assertEqual(bytes(board.cpu.mem_read(0, 0x500)), ivt_bda)
         self.assertEqual(bytes(board.cpu.mem_read(0xf8000, 0x8000)), rom)
         self.assertEqual(board.programs(), [])  # raw writes never publish a slot
 
-    def test_memory_write_rejects_rom_unmapped_and_reserved_aliases(self):
+    def test_memory_write_rejects_rom_unmapped_and_reserved_memory(self):
         board = self.board
         image = b"\xcb" + b"guard" * 25
         board.upload("Keep", image)
         residents = board.programs()
         ivt_bda = bytes(board.cpu.mem_read(0, 0x500))
         rom = bytes(board.cpu.mem_read(0xf8000, 0x8000))
-        for alias in (0, 0x8000, 0x10000, 0x18000):
-            for offset, data in ((0, b"x"), (0x400, b"x"), (0x500, b"x"),
-                                 (0x700, b"x"), (0x7ff, b"xy"),
-                                 (0x7bff, b"xy"), (0x7c00, b"x"), (0x7fff, b"xy")):
-                self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", alias + offset) + data), b"\x0e")
-        for address in (0x20000, 0xf8000, 0xfffff, 0x100000, 0xffffffff):
+        for address in (0, 0x400, 0x500, 0x700, 0x7bff, 0x8000, 0x8400,
+                        0x8500, 0x8700, 0x87ff, 0xfc00, 0xffff, 0x10800,
+                        0x18800, 0x20000, 0x9ffff, 0xf8000, 0xfffff,
+                        0x100000, 0xffffffff):
             self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", address) + b"xy"), b"\x0e")
         for request in (b"", bytes(3), struct.pack("<I", 0x9000)):
             self.assertEqual(board.transact(MEMORY_WRITE, request), b"\x0e")
         # A boundary-crossing block must not even write its valid first byte.
-        self.assertEqual(bytes(board.cpu.mem_read(0x7bff, 1)), b"\0")
+        self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", 0xfbff) + b"xy"), b"\x0e")
         self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, len(image))), image)
         self.assertEqual(bytes(board.cpu.mem_read(0, 0x500)), ivt_bda)
         self.assertEqual(bytes(board.cpu.mem_read(0xf8000, 0x8000)), rom)
@@ -1433,28 +1443,28 @@ class FirmwareTest(unittest.TestCase):
         board.key(4)
         self.assertEqual(board.transact(MEMORY_WRITE, request), b"\0")
 
-    def test_memory_read_ram_aliases_and_max_reply(self):
+    def test_memory_read_distinct_banks_and_max_reply(self):
         board = self.board
         image = bytes(range(256)) + b"tail"
         ident, address = board.upload("Readable", image)
         residents = board.programs()
-        for alias in (0x1000, 0x9000, 0x11000, 0x19000):
-            board.cpu.mem_write(0x9000, bytes(range(127)))
-            request = struct.pack("<IH", alias, 127)
+        for address in (0x9000, 0x11000, 0x21000, 0x91000):
+            board.cpu.mem_write(address, bytes(range(127)))
+            request = struct.pack("<IH", address, 127)
             reply = board.transact(MEMORY_READ, request, sequence=99)
             self.assertEqual(reply, b"\0" + bytes(range(127)))
             self.assertEqual(board.transact(MEMORY_READ, request, sequence=99), reply)
         self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", address, 127)), b"\0" + image[:127])
         ivt = bytes(board.cpu.mem_read(0, 127))
         self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", 0, 127)), b"\0" + ivt)
-        # Last SRAM byte is readable; it is live BIOS stack, not static data.
-        self.assertEqual(len(board.transact(MEMORY_READ, struct.pack("<IH", 0x1ffff, 1))), 2)
+        # Last physical SRAM byte is readable.
+        self.assertEqual(len(board.transact(MEMORY_READ, struct.pack("<IH", 0x9ffff, 1))), 2)
         self.assertEqual(board.programs(), residents)
         self.assertEqual(bytes(board.cpu.mem_read(PAYLOAD_BASE, len(image))), image)
 
     def test_memory_read_packet_buffer_overlap_and_df_restore(self):
         board = self.board
-        for address in (0x500, 0x8500, 0x10500, 0x18500):
+        for address in (0x8500,):
             request = struct.pack("<IH", address, 127)
             # The UART has just put this COBS packet into RX. Reading RX into
             # its own reply needs backwards copying to avoid repeating bytes.
@@ -1473,7 +1483,7 @@ class FirmwareTest(unittest.TestCase):
                         struct.pack("<IH", PAYLOAD_BASE, 128),
                         struct.pack("<IH", PAYLOAD_BASE, 65535)):
             self.assertEqual(board.transact(MEMORY_READ, payload), b"\x0e")
-        for address, size in ((0x20000, 1), (0x1ffff, 2), (0xf7fff, 2),
+        for address, size in ((0x9ffff, 2), (0xa0000, 1), (0xf7fff, 2),
                               (0xf8000, 127), (0xffff0, 16), (0xfffff, 1),
                               (0xfffff, 2), (0x100000, 1), (0xffffffff, 127),
                               (0xfffffff0, 127)):
@@ -1623,48 +1633,54 @@ class FirmwareTest(unittest.TestCase):
         board = self.board
         board.cpu.mem_write(0xfc00, b"STACK GUARD")
         board.cpu.mem_write(0xfe00, b"BIOS STACK GUARD")
+        for bank in range(1, 10):
+            board.cpu.mem_write((bank << 16) + 0x1234, b"\xee")
         board.start_memory_test()
         api_state = bytes(board.cpu.mem_read(0x8700, 0x60))
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + " " * 18 + "]")
-        self.assertEqual(screen[2].strip(), "RAM: 8000-800F")
-        self.assertEqual(screen[3], "OK:000000 BAD:000000")
+        self.assertEqual(screen[2].strip(), "RAM: 00000-0000F")
+        self.assertEqual(screen[3], "OK:0000000 B:0000000")
         self.assertNotEqual(board.transact(PROGRAM_UPLOAD_BEGIN, struct.pack("<I", 4)), b"\0")
         self.assertEqual(board.transact(PING), b"\0")
-        board.advance(26000000)
+        board.advance(550000000)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + "#" * 18 + "]")
-        self.assertEqual(screen[2].strip(), "DONE FFF0-FFFF")
-        self.assertEqual(screen[3], "OK:163840 BAD:000000")
+        self.assertEqual(screen[2].strip(), "DONE 9FFF0-9FFFF")
+        self.assertEqual(screen[3], "OK:3276800 B:0000000")
         self.assertEqual(bytes(board.cpu.mem_read(0xfc00, 11)), b"STACK GUARD")
         self.assertEqual(bytes(board.cpu.mem_read(0xfe00, 16)), b"BIOS STACK GUARD")
         self.assertEqual(bytes(board.cpu.mem_read(0x8700, 0x60)), api_state)
+        for bank in range(1, 10):
+            self.assertEqual(bytes(board.cpu.mem_read((bank << 16) + 0x1234, 1)),
+                             bytes([0x34 ^ 0x12 ^ bank]))
         board.key(4)
         board.key(3)
         board.key(3)
         board.key(4)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
-        self.assertTrue(screen[2].startswith("STOP 80"))
-        self.assertEqual(screen[3], "OK:000000 BAD:000000")
+        self.assertTrue(screen[2].startswith("STOP 000"))
+        self.assertEqual(screen[3], "OK:0000000 B:0000000")
 
     def test_memory_failure(self):
         board = self.board
         board.start_memory_test()
 
         def bad_read(cpu, access, address, size, value, user):
-            cpu.mem_write(0x9000, b"\x01")
+            cpu.mem_write(0x19000, b"\x01")
 
-        board.cpu.hook_add(UC_HOOK_MEM_READ, bad_read, begin=0x9000, end=0x9000)
-        board.advance(26000000)
+        board.cpu.hook_add(UC_HOOK_MEM_READ, bad_read, begin=0x19000, end=0x19000)
+        board.advance(550000000)
         screen = board.screen()
         self.assertEqual(screen[0].strip(), "MEMORY CHECK")
         self.assertEqual(screen[1], "[" + "#" * 18 + "]")
-        self.assertEqual(screen[2].strip(), "FAIL 9000-900F")
+        self.assertEqual(screen[2].strip(), "FAIL 19000-1900F")
         self.assertEqual(bytes(board.cpu.mem_read(0x8684, 4)), bytes.fromhex("00010090"))
-        self.assertEqual(screen[3], "OK:163835 BAD:000005")
+        self.assertEqual(bytes(board.cpu.mem_read(0x8764, 1)), b"\x01")
+        self.assertEqual(screen[3], "OK:3276795 B:0000005")
 
     def test_memory_failure_in_reserved_sram(self):
         board = self.board
@@ -1674,34 +1690,34 @@ class FirmwareTest(unittest.TestCase):
             cpu.mem_write(0x8402, b"\x01")
 
         board.cpu.hook_add(UC_HOOK_MEM_READ, bad_read, begin=0x8402, end=0x8402)
-        board.advance(26000000)
+        board.advance(550000000)
         screen = board.screen()
-        self.assertEqual(screen[2].strip(), "FAIL 8400-840F")
+        self.assertEqual(screen[2].strip(), "FAIL 08400-0840F")
         self.assertEqual(bytes(board.cpu.mem_read(0x8684, 4)), bytes.fromhex("00010284"))
-        self.assertEqual(screen[3], "OK:163835 BAD:000005")
+        self.assertEqual(screen[3], "OK:3276795 B:0000005")
 
     def test_memory_progress_never_resets(self):
         board = self.board
         board.start_memory_test()
         previous = 0
         for _ in range(30):
-            board.advance(700000)
+            board.advance(20000000)
             screen = board.screen()
             completed = screen[1].count("#")
             self.assertGreaterEqual(completed, previous)
             self.assertEqual(screen[1], "[" + "#" * completed + " " * (18 - completed) + "]")
             self.assertTrue(screen[3].startswith("OK:"))
             if screen[2].startswith("RAM:"):
-                start, end = (int(address, 16) for address in screen[2][5:14].split("-"))
+                start, end = (int(address, 16) for address in screen[2][5:16].split("-"))
                 self.assertEqual(start & 15, 0)
                 self.assertEqual(end - start, 15)
-                self.assertGreaterEqual(start, 0x8000)
-                self.assertLess(end, 0x10000)
+                self.assertGreaterEqual(start, 0)
+                self.assertLess(end, 0xa0000)
             previous = completed
             if screen[2].startswith("DONE"):
                 break
         self.assertEqual(previous, 18)
-        self.assertEqual(screen[3], "OK:163840 BAD:000000")
+        self.assertEqual(screen[3], "OK:3276800 B:0000000")
 
     def test_memory_counts_multiple_errors_and_keeps_first_log(self):
         board = self.board
@@ -1711,10 +1727,10 @@ class FirmwareTest(unittest.TestCase):
             cpu.mem_write(address, b"\x01")
 
         board.cpu.hook_add(UC_HOOK_MEM_READ, bad_reads, begin=0x9000, end=0x9001)
-        board.advance(26000000)
+        board.advance(550000000)
         screen = board.screen()
-        self.assertEqual(screen[2].strip(), "FAIL 9000-900F")
-        self.assertEqual(screen[3], "OK:163830 BAD:000010")
+        self.assertEqual(screen[2].strip(), "FAIL 09000-0900F")
+        self.assertEqual(screen[3], "OK:3276790 B:0000010")
 
     def test_run_returns_to_rom_menu(self):
         board = self.board
@@ -1854,6 +1870,126 @@ class FirmwareTest(unittest.TestCase):
         board.rx.extend(corrupt)
         board.advance(5000)
         self.assertEqual(board.transact(PING), b"\0")
+
+
+class Rev2FirmwareTest(unittest.TestCase):
+    def setUp(self):
+        self.board = Board()
+
+    def test_boot_ports_memory_size_and_info(self):
+        board = self.board
+        self.assertEqual(board.uart_divisor, [12, 0])
+        self.assertEqual(struct.unpack("<H", board.cpu.mem_read(0x400, 2))[0], 0x3f8)
+        self.assertEqual(struct.unpack("<H", board.cpu.mem_read(0x413, 2))[0], 640)
+        self.assertEqual(board.screen()[0].strip(), f"8088 BIOS {BIOS_VERSION}")
+        info = board.transact(INFO)
+        self.assertIn(b"rev2", info)
+        self.assertIn(b"SRAM 640K", info)
+        self.assertIn(b"UART 3F8 9600", info)
+        self.assertEqual(board.cpu.mem_read(0xe0000, 0x8000), BIOS.read_bytes())
+        self.assertEqual(board.cpu.mem_read(0xf8000, 0x8000), BIOS.read_bytes())
+
+    def test_upload_keyboard_and_return(self):
+        board = self.board
+        ident, address = board.upload("Return", b"\xcb")
+        self.assertEqual((ident, address), (1, 0x8800))
+        self.assertEqual(board.transact(KEYBOARD_MODE, b"\1"), b"\0\0")
+        self.assertEqual(board.transact(PROGRAM_EXEC, address=ident), b"\0")
+        board.advance(500000)
+        self.assertEqual(board.screen()[0].strip(), "CUSTOM PROGRAMS")
+        self.assertEqual(board.transact(PING), b"\0")
+
+    def test_distinct_sram_banks_and_read_boundaries(self):
+        board = self.board
+        for address, value in ((0x9000, b"A"), (0x11000, b"B"),
+                               (0x21000, b"C"), (0x9ffff, b"Z")):
+            board.cpu.mem_write(address, value)
+            self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", address, 1)), b"\0" + value)
+        self.assertEqual(board.cpu.mem_read(0x1000, 1), b"\0")
+        for address, size in ((0x9ffff, 2), (0xa0000, 1), (0xf8000, 1),
+                              (0x100000, 1), (0xffffffff, 127)):
+            self.assertEqual(board.transact(MEMORY_READ, struct.pack("<IH", address, size)), b"\x0e")
+
+    def test_write_restricts_first_bank_payload(self):
+        board = self.board
+        self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", 0x9000) + b"XY"), b"\0")
+        self.assertEqual(board.cpu.mem_read(0x9000, 2), b"XY")
+        for address in (0x800, 0x8800 - 1, 0xfc00, 0x10800, 0x18800,
+                        0x20000, 0x9ffff, 0xf8000):
+            self.assertEqual(board.transact(MEMORY_WRITE, struct.pack("<I", address) + b"Q"),
+                             b"\x0e")
+        self.assertEqual(board.cpu.mem_read(0x9000, 2), b"XY")
+
+    def test_flasher_readback_and_partial_write_blocks_reset(self):
+        board = self.board
+        self.assertEqual(board.transact(BIOS_FLASHER_MODE), b"\0")
+        self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", 0xf8000, 127)),
+                         b"\0" + BIOS.read_bytes()[:127])
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", 0xf8000) + b"X"), b"\0")
+        self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", 0xf8000, 1)), b"\0X")
+        self.assertEqual(board.transact(RESET), b"\x12")
+        self.assertEqual(board.transact(PING), b"\0")
+
+    def test_flasher_full_transfer_retry_and_restart(self):
+        board = self.board
+        board.eeprom_mode()
+        image = BIOS.read_bytes()
+        first = struct.pack("<I", BIOS_ADDRESS) + image[:124]
+        self.assertEqual(board.transact(BIOS_WRITE, first, sequence=40), b"\0")
+        self.assertEqual(len(board.eeprom_writes), 124)
+        self.assertEqual(board.transact(BIOS_WRITE, first, sequence=40), b"\0")
+        self.assertEqual(board.transact(BIOS_WRITE, first, sequence=41), b"\0")
+        self.assertEqual(len(board.eeprom_writes), 124)
+        self.assertEqual(board.transact(BIOS_WRITE, first[:-1] + b"Q", sequence=40), b"\x12")
+        self.assertEqual(board.transact(BIOS_WRITE, struct.pack("<I", BIOS_ADDRESS + 125) + b"X"), b"\x12")
+        self.assertEqual(board.transact(RESET), b"\x12")
+        for offset in range(124, len(image), 124):
+            block = image[offset:offset + 124]
+            self.assertEqual(board.transact(BIOS_WRITE,
+                             struct.pack("<I", BIOS_ADDRESS + offset) + block), b"\0")
+        self.assertEqual(len(board.eeprom_writes), len(image))
+        self.assertEqual(board.cpu.mem_read(BIOS_ADDRESS, len(image)), image)
+        last_offset = (len(image) - 1) // 124 * 124
+        last = struct.pack("<I", BIOS_ADDRESS + last_offset) + image[last_offset:]
+        count = len(board.eeprom_writes)
+        self.assertEqual(board.transact(BIOS_WRITE, last, sequence=(board.sequence - 1) & 255), b"\0")
+        self.assertEqual(len(board.eeprom_writes), count)
+        self.assertEqual(board.transact(RESET), b"\0")
+        board.advance(500000)
+        self.assertEqual(board.transact(INFO)[0], 0)
+
+    def test_flasher_write_failure_cache_and_new_sequence_retry(self):
+        board = self.board
+        board.eeprom_mode()
+        old_byte = bytes(board.cpu.mem_read(BIOS_ADDRESS, 1))
+        request = struct.pack("<I", BIOS_ADDRESS) + b"X"
+
+        def no_programming(cpu, access, address, size, value, user):
+            cpu.mem_write(BIOS_ADDRESS, old_byte)
+
+        hook = board.cpu.hook_add(UC_HOOK_MEM_READ, no_programming,
+                                  begin=BIOS_ADDRESS, end=BIOS_ADDRESS)
+        self.assertEqual(board.transact(BIOS_WRITE, request, sequence=42), b"\x13")
+        board.cpu.hook_del(hook)
+        self.assertEqual(board.transact(RESET), b"\x12")
+        count = len(board.eeprom_writes)
+        self.assertEqual(board.transact(BIOS_WRITE, request, sequence=42), b"\x13")
+        self.assertEqual(len(board.eeprom_writes), count)
+        self.assertEqual(board.transact(BIOS_WRITE, request, sequence=43), b"\0")
+        self.assertEqual(board.transact(BIOS_READ, struct.pack("<IH", BIOS_ADDRESS, 1)), b"\0X")
+
+    def test_flasher_restart_requires_another_complete_image(self):
+        board = self.board
+        board.eeprom_mode()
+        image = BIOS.read_bytes()
+        for offset in range(0, len(image), 124):
+            self.assertEqual(board.transact(BIOS_WRITE,
+                             struct.pack("<I", BIOS_ADDRESS + offset) + image[offset:offset + 124]), b"\0")
+        self.assertEqual(len(board.eeprom_writes), len(image))
+        first = struct.pack("<I", BIOS_ADDRESS) + image[:124]
+        self.assertEqual(board.transact(BIOS_WRITE, first), b"\0")
+        self.assertEqual(len(board.eeprom_writes), len(image) + 124)
+        self.assertEqual(board.transact(RESET), b"\x12")
 
 
 if __name__ == "__main__":
