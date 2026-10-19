@@ -302,10 +302,10 @@ On writing firmware, empty data, gaps, overlaps, overflow and out-of-range
 blocks return 18 before any byte is written; the last accepted block retry and
 restart after completion are the exceptions below.
 
-The programmer validates the complete frame and block before writing. It
-splits writes at EEPROM page boundaries, waits for each programming cycle
-using the device's completion polling, and checks every written byte by
-readback. Block success is sent only after verification; failure returns 19
+The programmer validates the complete frame and block before writing. The
+current Rev. 2 BIOS programs one byte at a time, waits for completion by
+reading the full byte back, and checks each byte before proceeding. Block
+success is sent only after verification; failure returns 19
 and may leave part of that block programmed. The host may choose 64-byte
 aligned blocks for AT28C256, but the wire limit remains 124 image bytes.
 

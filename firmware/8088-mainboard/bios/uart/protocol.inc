@@ -77,7 +77,7 @@ monitor_dispatch:
     jmp monitor_reply
 
 monitor_bios_unsupported:
-    mov al, 17                      ; unsupported on revision 1
+    mov al, 17                      ; EEPROM commands require RAM flasher mode
     jmp monitor_reply
 
 monitor_ping:

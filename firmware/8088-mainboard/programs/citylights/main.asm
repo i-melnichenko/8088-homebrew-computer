@@ -8,7 +8,7 @@ ORG 0
 %include "bios_api.inc"
 
 SCREEN_CELLS equ BIOS_LCD_COLUMNS * BIOS_LCD_ROWS
-; Rev1 has no timer. One polling delay is roughly 1/8 second at 4.77 MHz.
+; Current BIOS has no timer service. One polling delay is roughly 1/8 second at 4.77 MHz.
 TICKS_PER_SECOND equ 8
 INTRO_TICKS      equ 2 * TICKS_PER_SECOND
 SCENE_TICKS      equ 5 * TICKS_PER_SECOND
@@ -327,7 +327,7 @@ present_frame:
     ret
 
 delay_tick:
-    ; Poll between short delay slices: rev1 has no keyboard IRQ.
+    ; Poll between short delay slices: BIOS does not enable keyboard IRQs.
     mov dx, 128
 .chunk:
     mov cx, 256

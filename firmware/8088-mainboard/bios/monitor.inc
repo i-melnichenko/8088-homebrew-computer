@@ -11,7 +11,7 @@ monitor_ready:
     mov si, greeting
     call uart_print
 
-; Revision 1 uses polling; the board does not provide UART interrupts.
+; Current Rev. 2 BIOS uses polling; PIC and UART interrupts are not enabled.
 monitor_loop:
     call monitor_read_frame
     jc .idle
