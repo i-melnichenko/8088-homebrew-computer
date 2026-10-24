@@ -5,32 +5,22 @@ BIOS_VERSION ?= dev
 
 BUILD_DIR := build
 
-.PHONY: all clean bios citylights terminal serial serial-ports keyboard test FORCE
+.PHONY: all clean bios os serial serial-ports keyboard test test-images FORCE
 
-all: bios
+all: bios os
 
 bios: $(BUILD_DIR)/bios.bin
 
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(BUILD_DIR)/terminal.bin: programs/terminal/main.asm lib/bios_api.inc | $(BUILD_DIR)
-	$(NASM) -f bin -I lib/ -o $@ $<
-
-$(BUILD_DIR)/citylights.bin: programs/citylights/main.asm lib/bios_api.inc | $(BUILD_DIR)
-	$(NASM) -f bin -I lib/ -o $@ $<
-
-citylights: $(BUILD_DIR)/citylights.bin
-
-terminal: $(BUILD_DIR)/terminal.bin
-
-BIOS_INCLUDES := $(wildcard bios/*.inc bios/uart/*.inc bios/utils/*.inc)
+BIOS_INCLUDES := $(wildcard bios/*.inc bios/uart/*.inc bios/utils/*.inc bios/pc/*.inc)
 # Rebuild this small ROM on each invocation so a changed CI version cannot
 # leave an old image behind. Examples retain normal incremental builds.
 FORCE:
 
-$(BUILD_DIR)/flasher.bin: programs/flasher/main.asm programs/flasher/read.inc programs/flasher/write.inc programs/flasher/range.inc programs/flasher/screen.inc bios/state.inc bios/uart/constants.inc bios/uart/framing.inc lib/memory.inc lib/uart16550.inc | $(BUILD_DIR)
-	$(NASM) -f bin -I lib/ -I bios/ -I programs/flasher/ -o $@ $<
+$(BUILD_DIR)/flasher.bin: bios/programs/flasher/main.asm bios/programs/flasher/read.inc bios/programs/flasher/write.inc bios/programs/flasher/range.inc bios/programs/flasher/screen.inc bios/state.inc bios/uart/constants.inc bios/uart/framing.inc lib/memory.inc lib/uart16550.inc FORCE | $(BUILD_DIR)
+	$(NASM) -f bin -I lib/ -I bios/ -I bios/programs/flasher/ -o $@ $<
 
 $(BUILD_DIR)/bios.bin: bios/main.asm $(BIOS_INCLUDES) $(BUILD_DIR)/flasher.bin lib/lcd.inc lib/memory.inc lib/uart16550.inc lib/bios_api.inc scripts/rom-size.awk FORCE | $(BUILD_DIR)
 	$(NASM) -f bin -I lib/ -I bios/ -D 'BIOS_VERSION="$(BIOS_VERSION)"' -l $(BUILD_DIR)/bios.lst -o $@ $<
@@ -53,9 +43,31 @@ ifndef SERIAL_PORT
 endif
 	$(GO) -C ../../tools/boardctl run ./cmd -port $(SERIAL_PORT) keyboard
 
+# One ROM image serves boards with and without the optional LCD module.
+test-images:
+	$(MAKE) bios os
+
 test:
 	docker build --build-arg BIOS_VERSION=$(BIOS_VERSION) -f tests/Dockerfile -t $(EMULATOR_IMAGE) .
 	docker run --rm $(EMULATOR_IMAGE)
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+.PHONY: os
+os: $(BUILD_DIR)/home8088.img
+
+$(BUILD_DIR)/os-boot.bin: os/boot.asm | $(BUILD_DIR)
+	$(NASM) -f bin -o $@ $<
+
+$(BUILD_DIR)/os-kernel.bin: os/kernel.asm | $(BUILD_DIR)
+	$(NASM) -f bin -l $(BUILD_DIR)/os-kernel.lst -o $@ $<
+
+$(BUILD_DIR)/%.com: programs/%/main.asm lib/bios_api.inc | $(BUILD_DIR)
+	$(NASM) -f bin -I lib/ -o $@ $<
+
+$(BUILD_DIR)/home8088.img: $(BUILD_DIR)/os-boot.bin $(BUILD_DIR)/os-kernel.bin $(BUILD_DIR)/city.com $(BUILD_DIR)/reactor.com $(BUILD_DIR)/terminal.com scripts/make-os-image.py
+	python3 scripts/make-os-image.py $@ $(filter %.bin %.com,$^)
+
+$(BUILD_DIR)/city.com: programs/citylights/main.asm lib/bios_api.inc | $(BUILD_DIR)
+	$(NASM) -f bin -I lib/ -o $@ $<

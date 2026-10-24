@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
@@ -24,12 +25,12 @@ type writeOptions struct {
 }
 
 func validateWriteRange(address uint32, size int) error {
-	// A15/A16 are not connected to SRAM: validate the backing bytes, not just
-	// the apparent physical address, to protect all mirrors of BIOS state.
-	start := uint64(address & 0x7fff)
-	if size <= 0 || address >= 0x20000 || start < payloadBase&0x7fff ||
-		start+uint64(size) > payloadLimit&0x7fff {
-		return errors.New("write range must lie entirely in payload RAM 0x8800..0xfbff or its aliases; ROM, BIOS RAM and stacks are protected")
+	// Each Rev.2 chip is a distinct 128-KiB bank. BIOS chooses the working
+	// bank; permit its payload offset here and let BIOS enforce bank presence.
+	start := uint64(address & 0x1ffff)
+	if size <= 0 || address >= 0xa0000 || start < scratchBase ||
+		start+uint64(size) > scratchLimit {
+		return errors.New("write range must lie entirely in a Rev.2 bank's scratch offset 0x8800..0xfbff; BIOS enforces the selected bank")
 	}
 	return nil
 }
@@ -66,13 +67,17 @@ func writeMemory(c *client.Client, address uint32, data []byte) error {
 
 func validateDumpRange(address, size uint32) error {
 	end := uint64(address) + uint64(size)
-	if size == 0 || address >= 0x20000 || end > 0x20000 {
-		return errors.New("dump range must lie entirely in RAM 0x00000..0x1ffff")
+	if size == 0 || address >= 0xa0000 || end > 0xa0000 {
+		return errors.New("dump range must lie entirely in RAM 0x00000..0x9ffff")
 	}
 	return nil
 }
 
 func readMemory(c *client.Client, address, size uint32) ([]byte, error) {
+	return readMemoryContext(context.Background(), c, address, size)
+}
+
+func readMemoryContext(ctx context.Context, c *client.Client, address, size uint32) ([]byte, error) {
 	if err := validateDumpRange(address, size); err != nil {
 		return nil, err
 	}
@@ -83,7 +88,7 @@ func readMemory(c *client.Client, address, size uint32) ([]byte, error) {
 		payload := make([]byte, 6)
 		binary.LittleEndian.PutUint32(payload, addr)
 		binary.LittleEndian.PutUint16(payload[4:], uint16(n))
-		response, err := c.Transact(protocol.Frame{Command: protocol.MemoryRead, Data: payload})
+		response, err := c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.MemoryRead, Data: payload}, 10)
 		if err := checkResponse(response, err); err != nil {
 			return nil, fmt.Errorf("read memory at %#x: %w", addr, err)
 		}

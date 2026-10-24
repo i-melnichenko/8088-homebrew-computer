@@ -1,6 +1,6 @@
 BITS 16
 CPU 8086
-ORG 0
+ORG 100h
 
 ; UART-to-LCD terminal for the combined LCD and UART BIOS.
 
@@ -8,7 +8,6 @@ ORG 0
 %include "bios_api.inc"
 
 start:
-    cli
     cld
     mov ax, cs
     mov ds, ax
@@ -55,7 +54,7 @@ start:
     call cursor_backspace
     jmp short .read
 .exit:
-    retf
+    int 20h
 
 ; Write AL at the current LCD cursor position. AL is preserved for UART echo.
 lcd_putc_at_cursor:

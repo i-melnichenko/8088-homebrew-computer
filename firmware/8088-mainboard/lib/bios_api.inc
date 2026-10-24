@@ -7,7 +7,12 @@ BIOS_INT_KEYBOARD equ 16h
 BIOS_INT_BOARD equ 60h
 BIOS_API_VERSION equ 1
 BIOS_API_SIGNATURE equ 0B105h
-BIOS_API_FEATURES equ 001Fh
+BIOS_API_FEATURES equ 00FFh
+BIOS_API_FEATURE_CONSOLE_INFO equ 0080h
+BIOS_API_FEATURE_UART_BLOCK equ 0040h
+BIOS_API_FEATURE_TIME equ 0020h
+BIOS_RUNTIME_TIMER equ 1
+BIOS_RUNTIME_UART equ 2
 BIOS_API_FEATURE_HOST_KEYBOARD equ 0010h
 BIOS_LCD_COLUMNS equ 20
 BIOS_LCD_ROWS equ 4
@@ -89,5 +94,32 @@ BIOS_LCD_ROWS equ 4
     pop dx
     pop ax
     popf
+%endmacro
+; AH=06: DX runtime flags, CX integer tick-rate hint (18 for 18.2065 Hz, 0 if unavailable), AX=0, CF=0.
+%macro bios_runtime_info 0
+    mov ah, 06h
+    int BIOS_INT_BOARD
+%endmacro
+; AH=07: DX:AX 32-bit hardware ticks, CF=1 if unavailable.
+%macro bios_ticks 0
+    mov ah, 07h
+    int BIOS_INT_BOARD
+%endmacro
+; CX milliseconds. AL=0 hardware timer, AL=1 approximate software fallback.
+; Services terminal frames; does not consume queued keys. CX is preserved.
+%macro bios_delay 0
+    mov ah, 08h
+    int BIOS_INT_BOARD
+%endmacro
+; DS:SI buffer, CX length. AX accepted bytes, DX=0 success/1 timeout/2 range.
+; CF=1 on failure; SI/CX and other registers are preserved.
+%macro bios_uart_write 0
+    mov ah, 09h
+    int BIOS_INT_BOARD
+%endmacro
+; AX host input mode (0 raw, 1 keyboard, 2 terminal), DX bit0 LCD output supported (not physical presence).
+%macro bios_console_info 0
+    mov ah, 0Ah
+    int BIOS_INT_BOARD
 %endmacro
 %endif

@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-const usage = "usage: boardctl [-port DEVICE] keyboard | console | ping | info | programs | upload [--name NAME] [--run] FILE | run ID | delete ID | rename ID NAME | dump --addr ADDRESS --size BYTES [--output FILE] | write --addr ADDRESS FILE | bios-flasher-mode | bios-read [--output FILE] [--verify FILE] | bios-write [--reset] [--timeout DURATION] FILE | reset"
-const uploadUsage = "usage: boardctl upload [--name NAME] [--run] FILE"
+const usage = "usage: boardctl [-port DEVICE] terminal [--disk IMAGE [--boot]] | keyboard | console | ping | info | ram | ram-test | irq-test | dump --addr ADDRESS --size BYTES [--output FILE] | write --addr ADDRESS FILE | bios-flasher-mode | bios-read [--output FILE] [--verify FILE] | bios-write [--reset] [--timeout DURATION] FILE | reset"
+const ramTestUsage = "usage: boardctl ram-test"
 const dumpUsage = "usage: boardctl dump --addr ADDRESS --size BYTES [--output FILE]"
 const writeUsage = "usage: boardctl write --addr ADDRESS FILE"
 const biosFlasherModeUsage = "usage: boardctl bios-flasher-mode"
@@ -18,21 +18,18 @@ const biosReadUsage = "usage: boardctl bios-read [--output FILE] [--verify FILE]
 const biosWriteUsage = "usage: boardctl bios-write [--reset] [--timeout DURATION] FILE"
 
 type command struct {
-	port        string
-	name        string
-	programID   uint32
-	programName string
-	upload      uploadOptions
-	dump        dumpOptions
-	write       writeOptions
-	biosRead    biosReadOptions
-	biosWrite   biosWriteOptions
+	port      string
+	name      string
+	terminal  terminalOptions
+	dump      dumpOptions
+	write     writeOptions
+	biosRead  biosReadOptions
+	biosWrite biosWriteOptions
 }
 
-type uploadOptions struct {
-	name     string
-	data     []byte
-	runAfter bool
+type terminalOptions struct {
+	diskImage []byte
+	bootDisk  bool
 }
 
 func parseFlags(fs *flag.FlagSet, args []string, usage string) error {
@@ -60,56 +57,39 @@ func prepareCommand(args []string) (command, error) {
 	cmd.name = args[0]
 	args = args[1:]
 	switch cmd.name {
-	case "keyboard", "console", "ping", "info", "programs", "reset":
+	case "console", "ping", "info", "ram", "irq-test", "reset":
 		if len(args) != 0 {
 			return cmd, fmt.Errorf("usage: boardctl %s", cmd.name)
 		}
-	case "run", "delete", "rename":
-		n := 1
-		commandUsage := fmt.Sprintf("usage: boardctl %s ID (1..4)", cmd.name)
-		if cmd.name == "rename" {
-			n = 2
-			commandUsage += " NAME"
+	case "terminal", "keyboard":
+		commandUsage := "usage: boardctl " + cmd.name
+		fs := flag.NewFlagSet(cmd.name, flag.ContinueOnError)
+		var path string
+		if cmd.name == "terminal" {
+			commandUsage += " [--disk IMAGE [--boot]]"
+			fs.StringVar(&path, "disk", "", "serve a read-only 1.44-MiB floppy image")
+			fs.BoolVar(&cmd.terminal.bootDisk, "boot", false, "boot from the mounted floppy")
 		}
-		if len(args) != n {
+		if err := parseFlags(fs, args, commandUsage); err != nil {
+			return cmd, err
+		}
+		if fs.NArg() != 0 {
 			return cmd, errors.New(commandUsage)
 		}
-		id, err := strconv.ParseUint(args[0], 0, 32)
-		if err != nil || id < 1 || id > 4 {
-			return cmd, fmt.Errorf("invalid program ID %q: must be 1..4", args[0])
+		if cmd.terminal.bootDisk && path == "" {
+			return cmd, errors.New("--boot requires --disk")
 		}
-		cmd.programID = uint32(id)
-		if cmd.name == "rename" {
-			cmd.programName = args[1]
-			if err := validateName(cmd.programName); err != nil {
+		if path != "" {
+			var err error
+			cmd.terminal.diskImage, err = prepareDisk(path)
+			if err != nil {
 				return cmd, err
 			}
 		}
-	case "upload":
-		fs := flag.NewFlagSet("upload", flag.ContinueOnError)
-		fs.StringVar(&cmd.upload.name, "name", "", "program name (1..15 ASCII characters; default: file name)")
-		fs.BoolVar(&cmd.upload.runAfter, "run", false, "run after upload")
-		if err := parseFlags(fs, args, uploadUsage); err != nil {
-			return cmd, err
+	case "ram-test":
+		if len(args) != 0 {
+			return cmd, errors.New(ramTestUsage)
 		}
-		if fs.NArg() != 1 {
-			return cmd, errors.New(uploadUsage)
-		}
-		path := fs.Arg(0)
-		if cmd.upload.name == "" {
-			cmd.upload.name = defaultProgramName(path)
-		}
-		if err := validateName(cmd.upload.name); err != nil {
-			return cmd, err
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return cmd, fmt.Errorf("read upload file: %w", err)
-		}
-		if err := validateUpload(cmd.upload.name, len(data)); err != nil {
-			return cmd, err
-		}
-		cmd.upload.data = data
 	case "dump":
 		fs := flag.NewFlagSet("dump", flag.ContinueOnError)
 		var address, size string
@@ -144,7 +124,7 @@ func prepareCommand(args []string) (command, error) {
 	case "write":
 		fs := flag.NewFlagSet("write", flag.ContinueOnError)
 		var address string
-		fs.StringVar(&address, "addr", "", "physical payload RAM address (decimal or 0x-prefixed hex)")
+		fs.StringVar(&address, "addr", "", "physical scratch RAM address (decimal or 0x-prefixed hex)")
 		if err := parseFlags(fs, args, writeUsage); err != nil {
 			return cmd, err
 		}

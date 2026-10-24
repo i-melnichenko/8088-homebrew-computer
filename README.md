@@ -13,45 +13,35 @@ and software capabilities.
 
 ## Firmware and host tools
 
-The repository includes a [32 KiB ROM BIOS](firmware/8088-mainboard/README.md)
-and [boardctl](tools/boardctl/README.md), a host-side UART utility. The BIOS
-runs a monitor directly from ROM, displays a menu on a 20×4 LCD, and loads up
-to four named programs into SRAM. The menu offers program selection, a RAM
-check, and board information; default OS boot is still a placeholder. Uploaded
-programs can use the [BIOS interrupt API](firmware/8088-mainboard/docs/bios-api.md)
-for LCD, UART, and keyboard services.
+The repository includes a [32 KiB ROM BIOS](firmware/8088-mainboard/README.md),
+[HOME8088 OS](firmware/8088-mainboard/os/README.md) and
+[boardctl](tools/boardctl/README.md). BIOS performs POST, offers a 20×4 LCD menu
+for boot/diagnostics/info, and exposes PC-style hardware services. The OS loads
+COM applications from a read-only FAT12 floppy served by boardctl over UART.
 
-Build the ROM image with NASM and the example programs with the same Makefile.
-`boardctl` requires Go 1.26 or later and currently configures serial ports
-with macOS `stty`. From the repository root:
+From the repository root:
 
 ```sh
-make -C firmware/8088-mainboard
-make -C firmware/8088-mainboard citylights terminal
-go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX info
-go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX keyboard
-go -C tools/boardctl run ./cmd -port /dev/cu.usbserial-XXXX upload \
-  --name "City Lights" firmware/8088-mainboard/build/citylights.bin
+make -C firmware/8088-mainboard bios os BIOS_VERSION=dev-os2
+go -C tools/boardctl build -o boardctl ./cmd
+tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX info
+tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX terminal \
+  --disk firmware/8088-mainboard/build/home8088.img --boot
 ```
 
-`keyboard` sends menu and program input from the host terminal; the menu stays
-on the board LCD. `boardctl` also provides a raw `console`, program listing and
-management, RAM dump/write, reset, and EEPROM readback/flashing. The Rev. 2
-EEPROM write path uses the board's `ROM_WE_SW` switch; see the
-[BIOS flasher instructions](firmware/8088-mainboard/README.md#bios-flasher-mode).
-See the [boardctl command guide](tools/boardctl/README.md#commands)
-for usage and the [UART protocol v1](docs/uart-protocol-v1.md) for framing,
-commands, status codes, and retry rules.
+Install the built BIOS before booting the OS. Applications run from the OS with
+RUN CITY, RUN REACTOR or RUN TERMINAL. BIOS/boardctl do not manage application
+uploads or resident slots. Normal host operations require
+[UART protocol 2.0](docs/uart-protocol.md); EEPROM operations negotiate the
+installed upgrade transport separately so an older BIOS can still be updated.
+The independent updater lives in `firmware/8088-mainboard/bios/programs/flasher`.
 
-The BIOS now targets **Rev. 2 only**: on-board UART at `3F8h–3FFh`, 9600 8N1,
-and a 20×4 display module with **JP1 bridged** (`80h/81h` command/data ports).
-It reports 640 KiB of physical SRAM and accepts monitor reads across
-`00000h–9FFFFh`. Program allocation and raw monitor writes currently use
-`8800h–FBFFh` in the first 64 KiB; the menu memory check covers all
-`00000h–9FFFFh` (640 KiB). The RAM flasher supports EEPROM
-readback and full-image writing. `boardctl` stays at 9600
-baud; its current `dump` validation still limits host-initiated RAM dumps to
-`00000h–1FFFFh`.
+Rev. 2 uses on-board UART at 3F8..3FF, 9600 8N1, optional PIC/PIT, and an optional
+20×4 LCD with JP1 bridged (80/81 ports). POST detects installed SRAM chips across
+00000..9FFFF; the monitor/updater need one working chip anywhere. OS boot requires
+RAM0 and a verified timer, reserving the upper 32 KiB of contiguous RAM for BIOS.
+The PC timer runs at about 18.2065 Hz. Stock DOS compatibility remains in progress;
+the native OS exercises boot sectors, INT 13h, keyboard, console and PC time.
 
 ## Architecture
 

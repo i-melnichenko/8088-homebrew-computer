@@ -20,12 +20,10 @@ jmp eeprom_start
 eeprom_start:
     cli
     cld
-    xor ax, ax
-    mov ss, ax
     mov sp, SRAM_STACK_TOP
     mov ax, cs
     mov ds, ax
-    mov ax, MONITOR_BUFFER_SEGMENT
+    LOAD_STATE ax
     mov es, ax
     mov word [es:RX_COUNT], 0
     mov byte [es:RX_DROP], 0

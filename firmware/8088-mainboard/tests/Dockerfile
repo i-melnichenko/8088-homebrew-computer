@@ -12,5 +12,5 @@ COPY . .
 # Rebuild inside Linux rather than trusting a host-generated ROM image.
 ARG BIOS_VERSION=dev
 ENV BIOS_VERSION=${BIOS_VERSION}
-RUN make -B bios citylights terminal BIOS_VERSION="${BIOS_VERSION}"
-CMD ["python", "tests/test_bios.py"]
+RUN make -B test-images BIOS_VERSION="${BIOS_VERSION}"
+CMD ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]

@@ -80,12 +80,12 @@ func TestReadMemoryChunks(t *testing.T) {
 }
 
 func TestReadMemoryRangesAndReplies(t *testing.T) {
-	for _, r := range [][2]uint32{{0, 0x20000}, {0x1ffff, 1}, {0x18000, 0x8000}} {
+	for _, r := range [][2]uint32{{0, 0xa0000}, {0x9ffff, 1}, {0x18000, 0x8000}, {0x1ffff, 2}, {0x20000, 1}} {
 		if err := validateDumpRange(r[0], r[1]); err != nil {
 			t.Fatalf("valid range %x: %v", r, err)
 		}
 	}
-	for _, r := range [][2]uint32{{0, 0}, {0x1ffff, 2}, {0x20000, 1}, {0xf7fff, 2},
+	for _, r := range [][2]uint32{{0, 0}, {0x9ffff, 2}, {0xa0000, 1}, {0xf7fff, 2},
 		{0xf8000, 0x8000}, {0xffff0, 16}, {0xfffff, 1}, {0xfffff, 2}, {0xffffffff, 2}} {
 		s := &memorySerial{}
 		if _, err := readMemory(client.New(s, nil), r[0], r[1]); err == nil || len(s.requests) != 0 {
@@ -204,8 +204,8 @@ func (s *writeSerial) Write(p []byte) (int, error) {
 	return len(p), err
 }
 
-func TestWriteMemoryChunksAliasesAndVerification(t *testing.T) {
-	for _, address := range []uint32{0x1000, 0x9000, 0x11000, 0x19000} {
+func TestWriteMemoryChunksBanksAndVerification(t *testing.T) {
+	for _, address := range []uint32{0x9000, 0x29000, 0x49000, 0x69000, 0x89000} {
 		s := newWriteSerial()
 		data := memoryPattern(address, 257)
 		if err := writeMemory(client.New(s, nil), address, data); err != nil {
@@ -224,11 +224,11 @@ func TestWriteMemoryChunksAliasesAndVerification(t *testing.T) {
 }
 
 func TestWriteMemoryProtectsRangesAndHandlesFailures(t *testing.T) {
-	for _, base := range []uint32{0, 0x8000, 0x10000, 0x18000} {
-		for _, offset := range []uint32{0, 0x400, 0x500, 0x700, 0x7ff, 0x7bff, 0x7c00, 0x7fff} {
+	for bank := uint32(0); bank < 5; bank++ {
+		for _, offset := range []uint32{0, 0x400, 0x500, 0x8500, 0x87ff, 0xfbff, 0xfc00, 0xffff, 0x10000, 0x18800, 0x1ffff} {
 			s := newWriteSerial()
-			if err := writeMemory(client.New(s, nil), base+offset, []byte{1, 2}); err == nil || len(s.writes) != 0 {
-				t.Fatalf("unprotected RAM alias %#x: %v", base+offset, err)
+			if err := writeMemory(client.New(s, nil), bank*0x20000+offset, []byte{1, 2}); err == nil || len(s.writes) != 0 {
+				t.Fatalf("unprotected RAM %#x: %v", bank*0x20000+offset, err)
 			}
 		}
 	}
@@ -257,7 +257,7 @@ func TestWriteMemoryProtectsRangesAndHandlesFailures(t *testing.T) {
 
 func TestWriteCommand(t *testing.T) {
 	data := []byte{1, 2, 3}
-	path := writeUploadFile(t, "patch.bin", data)
+	path := writeTestFile(t, "patch.bin", data)
 	s := newWriteSerial()
 	if err := runWithSerial([]string{"write", "--addr", "0x9000", path},
 		func(string) (io.ReadWriteCloser, error) { return s, nil }); err != nil {

@@ -1,203 +1,200 @@
-# ROM BIOS software-interrupt API
+# BIOS software-interrupt API
 
-API revision **1** runs on the revision-2 8088 board using real software
-interrupts. It is independent of the UART wire protocol version (also 1).
-This is a documented subset of PC-style BIOS services plus board extensions,
-not a complete IBM PC BIOS or a claim that stock MS-DOS can boot.
+The BIOS provides PC-style services and board extensions on the revision-2 8088.
+Board API revision is 1; UART protocol revision is 2.0. These are separate APIs.
+Applications are COM files loaded by the OS. ROM has no application registry,
+upload service, shared application stack, or RETF-to-menu launch contract.
 
-## Memory and execution
+## Execution and memory
 
-The Rev. 2 decoder selects 640 KiB of distinct RAM at physical
-`00000h..9FFFFh`. The current program registry still uses 16-bit addresses,
-so BIOS allocates programs only in the first 64 KiB:
+RAM0 is required for IVT/BDA and OS boot. The ROM monitor and EEPROM updater
+can use another working bank without software interrupts. OS boot requires a
+verified timer and reserves the upper 32 KiB of contiguous RAM from physical zero.
+BDA 0040:0013 and INT 12h exclude this reservation. Later banks beyond a hole are
+not conventional memory. With 256 KiB contiguous RAM, DOS/native OS sees 224 KiB.
 
-| Physical SRAM bytes | Purpose |
+The BIOS bank segment is stored at physical 04F0, signature B105h at 04F2. All
+persistent state and IRQ access is independent of caller DS/ES/SS. Before boot,
+the selected working bank holds the same offsets without relocation. A read-only
+BDA signature probe selects the monitor-only fallback when RAM0 is absent.
+
+| BIOS-bank offsets | Purpose |
 | --- | --- |
-| 0000..03FF | 256 interrupt vectors, offset:segment |
-| 0400..04FF | BIOS Data Area, partial implementation |
-| 8500..86FF | monitor buffers, screen, registry |
-| 8700..87FF | API LCD framebuffer, cursor, keyboard and EEPROM mode parameters |
-| 8800..FBFF | program allocations, 29,696 bytes minus alignment gaps |
-| FC00..FDFF | program stack |
-| FE00..FFFF | BIOS stack |
-| 10000..9FFFF | physical RAM readable through the monitor, not allocated to programs |
+| 8000..81FF | Timer/UART state, disk metadata, RX ring |
+| 8200..82FF | Exact disk-block retry cache |
+| 8300..84FF | Disk sector buffer |
+| 8500..86FF | Monitor buffers and diagnostic state |
+| 8700..87FF | LCD/console/transport state |
+| 8800..FBFF | Flasher and diagnostic scratch |
+| FC00..FFFF | BIOS stack reservation |
 
-The vectors for 10h, 14h, 16h and 60h point into ROM F800:xxxx. Other vectors
-currently lead to the unsupported-service handler. This is not exception
-recovery: this BIOS keeps hardware interrupts disabled. Software INT
-works with IF=0 and does not require a PIC.
+The IVT and standard BDA remain at physical zero after relocation. COM memory,
+PSP, entry registers, stack and INT 20h termination belong to the OS; see the
+[OS contract](../os/README.md). No BIOS routine implements DOS INT 21h.
 
-Programs remain flat 8086-compatible ORG-0 images. BIOS far-calls their
-allocated segment at offset 0, with DS=CS, IF=0 and DF=0. It sets SP=FDFE
-before CALL; the program sees SP=FDFA because the far return address uses
-four bytes. Preserve SS/SP and use RETF to return to the menu.
+Unless specified, software INT services preserve AX/BX/CX/DX/SI/DI/BP/DS/ES
+and caller flags. They use IRET, clear DF internally and may enable verified IRQs
+while servicing calls, restoring caller IF/DF on return. Unsupported board/API
+functions return CF=1/AH=86h. Caller buffers must remain valid; there is no memory
+isolation. Keep IF enabled for background timer/UART service.
 
-Each INT uses the caller's stack and returns with IRET. Unless specified
-below, AX/BX/CX/DX/SI/DI/BP/DS/ES and the caller's flags are preserved.
-Handlers clear DF internally, then restore the caller's DF/IF through IRET.
-Invalid function numbers/parameters return CF=1 and AH=86h; this error
-convention is a board extension, not a claim about unspecified PC BIOS cases.
-Never access service internals or depend on handler addresses.
+## PC/XT interrupts
 
-The BDA currently initializes COM1 base (0040:0000 = 3F8h), physical memory
-size (0040:0013 = 640 KiB), keyboard ring head/tail (001A/001C) and buffer
-(001E..003D, 16 word slots with at most 15 queued keys), display mode
-(0049 = custom 7Fh), columns (004A = 20),
-framebuffer byte count (004C = 80), page-0 cursor (0050), and last row
-(0084 = 3). Other fields are reserved, not implemented PC services.
-There is no PC video memory at B800:0000 and no attribute framebuffer.
+| INT | Functions |
+| --- | --- |
+| 08h | Hardware timer ISR: monotonic ticks, BDA time and INT 1Ch hook |
+| 0Ch | UART IRQ4 ISR: bounded RX FIFO drain into private ring |
+| 10h | OS-mode UART console, below |
+| 11h | Equipment word from BDA; one floppy after boot |
+| 12h | AX = conventional RAM in KiB |
+| 13h | Read-only virtual floppy, below |
+| 14h | UART/terminal, below |
+| 16h | Keyboard queue, below |
+| 19h | Boot mounted floppy at 0000:7C00; does not return |
+| 1Ah | AH=00h read PC time; AH=01h set PC time |
+| 1Ch | Timer hook, initially IRET |
+| 60h | Board/LCD/time extensions, below |
 
-## INT 10h — LCD text console
+IRQ0 uses PIT channel 0 divisor 65536, approximately 18.2065 Hz. INT 1Ah/AH=00h
+returns CX:DX ticks since midnight and AL rollover count, clearing the count.
+AH=01h sets CX:DX below 1800B0h and clears rollover. Both clear CF; invalid
+functions/ranges return CF=1/AH=86h. BDA 0040:006C stores the clock and 0070
+rollovers. Setting PC time does not change the monotonic INT 60h clock. No RTC
+or retained date is provided.
 
-Only page BH=0 is supported, except AH=06h where BH is the ignored attribute.
-Coordinates are zero-based, row 0..3 and column 0..19.
+Timer/UART ISRs preserve registers and never parse frames or write LCD. INT 1Ch
+hooks must remain short and must not reenter cooperative UART processing.
+Programs must not reprogram BIOS-owned PIC/PIT/UART or IVT hardware-IRQ entries.
 
-| AH | Inputs | Operation / outputs |
+### INT 10h — UART text console in OS mode
+
+Mode 3 has a logical 80×25 page zero. Output is transmitted through UART;
+there is no B800:0000 video memory, complete CGA API or attribute framebuffer.
+LCD is a separate board display and shows OS/disk status by default.
+
+| AH | Inputs | Result |
 | --- | --- | --- |
-| 02h | BH=0, DH=row, DL=column | Set logical cursor and LCD DDRAM position |
-| 03h | BH=0 | Return DX=row:column, CX=2000h (hidden cursor) |
-| 06h | AL=lines, BH=attribute, CH/CL=top/left, DH/DL=bottom/right | Scroll the inclusive rectangle upward; AL=0 or AL>=height clears it |
-| 0Eh | BH=0, AL=character | Write character, advance cursor and scroll when necessary |
+| 00h | AL=3 | Clear/home UART terminal; restore LCD OS status |
+| 01h | cursor shape | Accepted, no physical cursor-shape emulation |
+| 02h | BH=0, DH=row 0..24, DL=column 0..79 | Set cursor using ANSI |
+| 03h | page zero | DX=logical cursor, CX=0607h |
+| 0Eh | AL=character | Teletype output, track CR/LF/BS/wrap |
+| 0Fh | none | AX=5003h, BH=0 |
 
-Attributes/colors are ignored on this monochrome character LCD. Teletype
-interprets CR (column zero), LF (next row, retaining column), BS (move left,
-without erasing or crossing the row boundary), and BEL (no speaker, no-op).
-Writing the final column wraps; reaching past row 3 scrolls the whole screen.
-Valid video calls preserve FLAGS. This 20x4 custom mode is not PC mode 3.
+Before OS boot, the BIOS monitor's LCD text backend is 20×4 custom mode 7Fh.
+Applications use INT 60h LCD functions independently of the UART console.
+This implementation is not yet a claim that stock DOS boots unmodified.
 
-## INT 14h — serial port
+### INT 13h — read-only floppy
 
-DX is the BIOS port index, **0** for the sole UART, not the `3F8h` I/O address.
+Drive DL=0, 80 cylinders, 2 heads, 18 sectors per track, 512-byte sectors.
 
-| AH | Inputs | Outputs / operation |
+| AH | Inputs | Result |
 | --- | --- | --- |
-| 00h | DX=0, AL=E3h | Initialize 9600 8N1, reset FIFOs and keyboard queue; return status as AH=03h |
-| 01h | DX=0, AL=byte | Transmit; AL retained, AH=line status or timeout |
-| 02h | DX=0 | Receive; AL=byte on success, AH=line status or timeout |
+| 00h | DL=0 | Reset/status success if mounted |
+| 01h | DL=0 | Last disk status |
+| 02h | AL=1..18, CH=cylinder, CL=sector, DH=head, ES:BX=buffer | Read sectors; AL=count on success |
+| 03h | write | CF=1, AH=03h (write protected) |
+| 08h | DL=0 | CH=79, CL=18, DH=1, DL=1, BL=4 |
+| 15h | DL=0 | AH=1 floppy type |
+
+CF clears on success, sets on error. Errors: 01h unsupported, 03h write
+protected, 04h invalid CHS/count, 09h invalid destination, 80h unavailable/timeout.
+Reads require OS mode, may not wrap a 64-KiB offset, touch IVT/BDA below 0500h,
+or extend above conventional RAM. ES:DI disk-parameter tables are not implemented.
+Sector transfer is cooperative over boardctl's mounted image; requests have a
+bounded timeout. INT 19h checks the sector signature, then enters 0000:7C00 with
+DL=0, DS=ES=SS=0, SP=7C00, DF=0 and IF=1.
+
+## INT 14h — serial/terminal
+
+DX is port index 0, not I/O address 3F8h.
+
+| AH | Inputs | Outputs |
+| --- | --- | --- |
+| 00h | AL=E3h, DX=0 | Initialize 9600 8N1, reset FIFO/keys; AH=03h |
+| 01h | AL=byte, DX=0 | Transmit, AL retained, AH=line status or timeout |
+| 02h | DX=0 | Receive AL, AH=line status or timeout |
 | 03h | DX=0 | AH=line status, AL=modem status |
 
-Initialization configurations other than E3h are not supported yet.
-Transmit and receive poll at most 65,535 iterations. On timeout AH bit 7 is
-set; do not use the receive AL then. The timeout is CPU-speed dependent,
-not a millisecond clock. AH bits 0..6 come from the UART LSR; bit 7 is the
-BIOS timeout indicator, not the 16550 FIFO-error-summary bit. Flags and
-registers other than AX are preserved on valid calls. No UART IRQ is enabled.
-While host keyboard sharing is enabled, AH=02h returns CF=1/AH=86h because
-framed keyboard traffic owns UART RX. TX/status remain available; initialization
-resets the FIFO and keyboard queue but does not disable sharing. UART text
-output is not displayed by the host keyboard command.
+Only AX changes on valid calls; flags are preserved. Raw TX/RX poll boundedly;
+AH bit 7 reports timeout. Raw RX is unavailable while framed keyboard sharing
+owns UART. Verified UART IRQ reception uses the private ring.
 
-## INT 16h — polled keyboard
+In terminal mode 2, TX enters a 64-byte framed-output queue. It processes host
+requests while waiting for space; AH=60h success, 80h timeout/detach. Accepted
+bytes may still be queued. In keyboard-only mode 1 raw text is not displayed by
+boardctl; applications should disable UART animation in that mode.
 
-| AH | Outputs / operation |
+## INT 16h — keyboard
+
+| AH | Result |
 | --- | --- |
-| 00h | Wait for a key and consume it; AL=ASCII, AH=scan code |
-| 01h | ZF=1 when empty (AX unchanged); otherwise ZF=0, AX=key, without consuming |
-| 02h | AL=0 modifier state; no physical keyboard modifier tracking yet |
+| 00h | Wait/consume; AL=ASCII, AH=PC-style scan |
+| 01h | Peek; ZF=1 empty (AX unchanged), otherwise ZF=0 and AX=key |
+| 02h | AL=0, no modifier tracking |
 
-ASCII letters, digits, basic punctuation, Esc, Tab, Backspace and CR have
-PC-style scan codes. Uppercase letters use the same scan code as lowercase.
-Other raw received bytes have scan code zero. In raw mode CR and LF are
-distinct bytes; terminal arrow sequences are not decoded by BIOS.
-Only AH=01h changes ZF; other FLAGS are retained.
+Only AH=01h changes ZF. The standard BDA ring holds fifteen keys. boardctl
+translates ANSI arrows/function keys into scan codes. Raw bytes have translated
+ASCII scan codes where known; raw ANSI sequences are not decoded by BIOS.
+Both blocking/peek calls process framed transport requests. IRQ4 collects bytes
+but does not parse commands. Long computation must call BIOS between slices.
 
-`boardctl keyboard` enables framed keyboard sharing before program launch.
-The host translates terminal arrows, Home/End, Insert/Delete, Page Up/Down
-and F1..F10 into keys with AL=0 and a PC-style scan code in AH. Enter becomes
-0D/1C, Backspace 08/0E and Esc 1B/01. No modifier/release events or PS/2
-decoding are implemented. The BIOS menu consumes the same BDA queue as programs.
+## INT 60h — board services
 
-The current BIOS does not use Rev. 2 hardware interrupts. Both AH=00h and AH=01h
-pump the UART frame decoder, at most one complete request per call. AH=00h
-continues polling until a key is available; AH=01h is suitable for cooperative
-program loops. Long work without these calls may cause UART overflow or host
-timeouts. The 15-key ring cannot prevent hardware FIFO overflow before polling.
-Software INT does not make input asynchronous.
+Success clears CF, failure sets CF/AH=86h, except AH=09h uses its own errors.
+Other flags/registers are preserved except documented outputs.
 
-For a program doing other work, poll between bounded work slices:
-
-~~~asm
-.loop:
-    bios_key_peek                 ; INT 16h/AH=01h: pump UART, leave key queued
-    jz .work
-    bios_key_read                 ; INT 16h/AH=00h: consume, AX=scan:ASCII
-    ; Handle AX here.
-.work:
-    ; Do a short slice of work; do not HLT waiting for a nonexistent IRQ.
-    jmp .loop
-~~~
-
-In sharing mode, the program-side poll accepts keyboard mode/events and PING;
-BIOS_WRITE receives status 17 (unsupported); other valid monitor
-commands, including BIOS_FLASHER_MODE and BIOS_READ, receive status 11 (program
-busy). Uploads remain
-available only in the ROM menu. Sharing survives RETF, but Reset disables it.
-Attach from the menu, not while an existing raw-UART program is running.
-Raw UART and keyboard input share one port: in sharing mode INT 14h receive
-is rejected; in raw mode it cannot consume keys already queued by INT 16h.
-Do not mix the two raw input paths while a key is pending.
-
-## INT 60h — board LCD extensions
-
-These are board-specific functions, not replacements for DOS INT 21h.
-Success clears CF; failure sets CF and AH=86h. Other flags are retained.
-
-| AH | Inputs | Outputs / operation |
+| AH | Inputs | Outputs/operation |
 | --- | --- | --- |
-| 00h | none | AX=1 revision, BX=B105h signature, CH=4 rows, CL=20 columns, DX=001Fh capabilities |
-| 01h | none | Clear LCD/framebuffer and reset cursor; retain pending keyboard input |
-| 02h | DH=row, DS:SI=ASCIZ | Replace one line, truncate/pad to 20 cells; cursor retained |
-| 03h | AL=glyph 0..7, DS:SI=8 bytes | Load 5x8 CGRAM glyph; only low five bits of each byte used |
-| 04h | DH=row, DL=column, AL=raw byte | Write one cell without interpreting controls, advancing cursor or scrolling |
-| 05h | DS:SI=ASCIZ | Print string using console teletype rules |
+| 00h | none | AX=1, BX=B105h, CH=4 rows, CL=20 columns, DX=00FFh capabilities |
+| 01h | none | Clear LCD/framebuffer/cursor, retain keys |
+| 02h | DH=row, DS:SI=ASCIZ | Replace/pad one 20-cell LCD row, retain cursor |
+| 03h | AL=glyph 0..7, DS:SI=8 bytes | Load 5×8 LCD CGRAM glyph |
+| 04h | DH=row, DL=column, AL=raw byte | Write LCD cell without cursor movement/control parsing |
+| 05h | DS:SI=ASCIZ | Print through the LCD text backend |
+| 06h | none | AX=0, DX=runtime flags, CX=18 integer rate hint or 0 without timer |
+| 07h | none | DX:AX=32-bit monotonic hardware ticks, CF=1/AH=86h unavailable |
+| 08h | CX=milliseconds | Wait/pump host; AX=0 hardware, 1 approximate software |
+| 09h | DS:SI=buffer, CX=count | AX=accepted bytes, DX=0 success/1 timeout-detach/2 offset wrap; CF=error |
+| 0Ah | none | AX=host mode 0/1/2, DX=1 LCD support (not detected presence) |
 
-Capabilities bits: 0 text console, 1 UART, 2 keyboard, 3 LCD extensions,
-4 host keyboard sharing (cooperative polling, not an IRQ-driven keyboard).
-Line/string/glyph functions preserve DS, SI and all other non-output
-registers. Strings and glyph buffers belong to the caller; these calls
-perform no memory isolation or bounds validation against the program image.
-ASCIZ printing requires a valid terminator. After CGRAM operations BIOS
-restores the LCD's DDRAM cursor.
+LCD coordinates are zero based, row 0..3, column 0..19. Strings truncate/pad
+rows; glyphs use the low five bits. The fixed-delay write-only LCD driver works
+with an absent module; R/W is grounded. LCD calls pump frames between writes.
 
-## SDK and example
+Capabilities: bit 0 text console, 1 UART, 2 keyboard, 3 LCD extensions, 4 host
+sharing, 5 time functions, 6 binary UART block output, 7 console query. Runtime
+flags: bit 0 verified timer, bit 1 verified UART RX IRQ.
 
-Include firmware/8088-mainboard/lib/bios_api.inc when assembling with
-NASM -I lib/. It contains constants and lightweight INT macros, no LCD/UART
-drivers. A macro may set argument registers before the INT; register
-preservation applies to the interrupt itself, not those setup instructions.
+The monotonic counter wraps modulo 2^32 and pauses in diagnostics/EEPROM mode.
+Delay rounds up to whole hardware ticks plus initial phase; zero is immediate.
+Without a verified timer, or after a stalled-clock watchdog, waiting uses
+approximate CPU work. Applications must inspect availability where exact time
+matters. Reactor accumulates PIT-clock fractions instead of assuming 18 exact
+hardware ticks per second.
 
-For example:
+Block output preserves DS/SI/CX and other non-output registers; only AX/DX/CF
+change. Count zero succeeds. Ending at offset 10000h is allowed; crossing it is
+rejected before output. On partial failure retry from SI+AX with remaining
+length. Caller memory must be readable; this API provides no isolation.
 
-~~~asm
+## SDK
+
+Include `lib/bios_api.inc` with `nasm -I lib/`. Macros only wrap interrupts;
+argument setup may itself change registers before the call. A native COM app:
+
+```asm
 BITS 16
 CPU 8086
-ORG 0
+ORG 100h
 %include "bios_api.inc"
-
     bios_lcd_clear
     bios_print message
     bios_key_read
-    retf
+    int 20h
+message: db 'Hello from OS!', 0
+```
 
-message: db 'Hello from INT!', 0
-~~~
-
-Both bundled examples use this API. The city animation loads CGRAM glyphs
-through INT 60h; the UART terminal reads keys through INT 16h, echoes through
-INT 14h and writes LCD cells through INT 60h.
-The animation also polls INT 16h between short delay slices; Esc ends its loop.
-
-## Verification and compatibility direction
-
-`make test` from `firmware/8088-mainboard` runs only inside Docker. The emulator
-maps distinct Rev. 2 SRAM banks and emulates CPU INT vector dispatch; the actual ROM
-handler and IRET instructions execute in Unicorn. Tests cover vectors/BDA,
-upload and memory-test isolation, caller segments/registers/flags/stack,
-cursor/scrolling/CGRAM, UART status/timeout, keyboard peek/get and return.
-They do not certify the board's wiring or hardware timings.
-
-Future PC compatibility must extend the documented standard services,
-memory/BDA organization, disk boot and timer/IRQ handling. This API provides
-reusable implementations; it does not emulate an 80x25 display, DOS kernel
-calls, PC keyboard hardware or direct PC I/O/video-memory accesses.
-Standard reference: [Ralf Brown's Interrupt List](https://www.cs.cmu.edu/~ralf/files.html).
+Tests execute assembled ROM and native OS code in Unicorn, checking stack,
+segment, transport and memory behavior. They do not certify board wiring/timing.

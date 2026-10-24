@@ -1,15 +1,26 @@
 ; UART command dispatch and common monitor commands.
 monitor_dispatch:
     mov al, [es:DECODE_BUFFER + 1]
-    mov byte [es:MENU_FLAGS], 0
-    cmp al, PROTO_PROGRAM_EXEC
-    je .exec_cache
-    mov byte [es:EXEC_VALID], 0
-.exec_cache:
-    cmp al, PROTO_PROGRAM_DELETE
-    je .delete_cache
-    mov byte [es:DELETE_VALID], 0
-.delete_cache:
+    ; Terminal polls consume sequence numbers too. Only immediate EVENT
+    ; retries are duplicates, so a wrapped sequence can accept a new key.
+    cmp byte [es:API_HOST_MODE], 2
+    jne .event_cache
+    cmp al, PROTO_KEYBOARD_EVENT
+    je .event_cache
+    mov byte [es:API_HOST_VALID], 0
+.event_cache:
+    cmp al, PROTO_TERMINAL_POLL
+    je .terminal_cache
+    mov byte [es:TERMINAL_VALID], 0
+.terminal_cache:
+    cmp al, PROTO_IRQ_TEST
+    je .irq_retry
+    mov byte [es:IRQ_TEST_VALID], 0
+.irq_retry:
+    cmp al, PROTO_RAM_TEST
+    je .ram_retry
+    mov byte [es:RAM_TEST_START_VALID], 0
+.ram_retry:
     cmp al, PROTO_BIOS_FLASHER_MODE
     jne .write
     jmp monitor_bios_flasher_mode
@@ -21,59 +32,35 @@ monitor_dispatch:
 .monitor:
     cmp al, PROTO_PING
     je monitor_ping
-    cmp al, PROTO_PROGRAM_UPLOAD_BEGIN
-    je monitor_program_upload_begin
-    cmp al, PROTO_PROGRAM_UPLOAD_DATA
-    je monitor_program_upload_data
-    cmp al, PROTO_PROGRAM_EXEC
-    jne .check_reset
-    jmp monitor_program_exec
-.check_reset:
     cmp al, PROTO_RESET
-    jne .check_info
-    jmp monitor_reset
-.check_info:
+    je monitor_reset
     cmp al, PROTO_INFO
-    jne .check_commit
-    jmp monitor_info
-.check_commit:
-    cmp al, PROTO_PROGRAM_UPLOAD_COMMIT
-    jne .check_list
-    jmp monitor_program_upload_commit
-.check_list:
-    cmp al, PROTO_PROGRAM_LIST
-    jne .check_abort
-    jmp monitor_program_list
-.check_abort:
-    cmp al, PROTO_PROGRAM_UPLOAD_ABORT
-    jne .check_delete
-    jmp monitor_program_upload_abort
-.check_delete:
-    cmp al, PROTO_PROGRAM_DELETE
-    jne .check_rename
-    jmp monitor_program_delete
-.check_rename:
-    cmp al, PROTO_PROGRAM_RENAME
-    jne .check_keyboard_mode
-    jmp monitor_program_rename
-.check_keyboard_mode:
+    je monitor_info
     cmp al, PROTO_KEYBOARD_MODE
-    jne .check_keyboard_event
-    jmp monitor_keyboard_mode
-.check_keyboard_event:
+    je monitor_keyboard_mode
     cmp al, PROTO_KEYBOARD_EVENT
-    jne .check_memory_read
-    jmp monitor_keyboard_event
-.check_memory_read:
+    je monitor_keyboard_event
     cmp al, PROTO_MEMORY_READ
-    jne .check_memory_write
-    jmp monitor_memory_read
-.check_memory_write:
+    je monitor_memory_read
     cmp al, PROTO_MEMORY_WRITE
-    jne .unknown
-    jmp monitor_memory_write
-.unknown:
-    mov al, 1                       ; unknown command
+    je monitor_memory_write
+    cmp al, PROTO_RAM_INFO
+    je monitor_ram_info
+    cmp al, PROTO_RAM_TEST
+    je monitor_ram_test
+    cmp al, PROTO_TERMINAL_POLL
+    je monitor_terminal_poll
+    cmp al, PROTO_IRQ_TEST
+    je monitor_irq_test
+    cmp al, PROTO_DISK_MOUNT
+    je monitor_disk_mount
+    cmp al, PROTO_DISK_BOOT
+    je monitor_disk_boot
+    cmp al, PROTO_DISK_POLL
+    je monitor_disk_poll
+    cmp al, PROTO_DISK_DATA
+    je monitor_disk_data
+    mov al, 1
     jmp monitor_reply
 
 monitor_bios_unsupported:

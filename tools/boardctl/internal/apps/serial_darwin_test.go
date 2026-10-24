@@ -2,6 +2,8 @@ package apps
 
 import (
 	"bytes"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -76,14 +78,20 @@ func TestKeyboardPTYProcess(t *testing.T) {
 	if os.Getenv("BOARDCTL_TEST_KEYBOARD_PROCESS") != "1" {
 		return
 	}
-	if err := Run([]string{"-port", os.Getenv("BOARDCTL_TEST_SERIAL_PORT"), "keyboard"}); err != nil {
+	args := []string{"keyboard"}
+	if raw := os.Getenv("BOARDCTL_TEST_INTERACTIVE_ARGS"); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &args); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := Run(append([]string{"-port", os.Getenv("BOARDCTL_TEST_SERIAL_PORT")}, args...)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	os.Exit(0)
 }
 
-func startKeyboardPTY(t *testing.T) (*serialPort, *serialPort, <-chan error) {
+func startKeyboardPTY(t *testing.T, args ...string) (*serialPort, *serialPort, <-chan error) {
 	t.Helper()
 	board, serialName := newTestPTY(t)
 	terminal, terminalName := newTestPTY(t)
@@ -94,6 +102,13 @@ func startKeyboardPTY(t *testing.T) (*serialPort, *serialPort, <-chan error) {
 	t.Cleanup(func() { _ = input.Close() })
 	cmd := exec.Command(os.Args[0], "-test.run=^TestKeyboardPTYProcess$")
 	cmd.Env = append(os.Environ(), "BOARDCTL_TEST_KEYBOARD_PROCESS=1", "BOARDCTL_TEST_SERIAL_PORT="+serialName)
+	if len(args) > 0 {
+		encoded, err := json.Marshal(args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cmd.Env = append(cmd.Env, "BOARDCTL_TEST_INTERACTIVE_ARGS="+string(encoded))
+	}
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = input, input, input
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 0}
 	if err := cmd.Start(); err != nil {
@@ -236,4 +251,84 @@ func ptySettings(t *testing.T, port *serialPort) syscall.Termios {
 		t.Fatalf("read terminal settings: %v %v", err, ioctlErr)
 	}
 	return settings
+}
+
+func TestTerminalPTYBootDiskAndReconnect(t *testing.T) {
+	image := bytes.Repeat([]byte{0xa5}, diskImageSize)
+	path := writeTestFile(t, "disk.img", image)
+	for _, reconnect := range []bool{false, true} {
+		t.Run(fmt.Sprint(reconnect), func(t *testing.T) {
+			args := []string{"terminal", "--disk", path}
+			if !reconnect {
+				args = append(args, "--boot")
+			}
+			board, tty, done := startKeyboardPTY(t, args...)
+			respond := func(request protocol.Frame, data []byte) {
+				packet, err := protocol.Encode(protocol.Frame{Command: request.Command | 0x80, Sequence: request.Sequence, Data: data})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, err := board.Write(packet); err != nil {
+					t.Fatal(err)
+				}
+			}
+			commands := []byte{protocol.KeyboardMode}
+			if !reconnect {
+				commands = append(commands, protocol.DiskMount, protocol.DiskBoot)
+			}
+			commands = append(commands, protocol.DiskPoll)
+			for _, command := range commands {
+				request := readPTYFrame(t, board)
+				if request.Command != command {
+					t.Fatalf("command %x want %x", request.Command, command)
+				}
+				data := []byte{0}
+				switch command {
+				case protocol.KeyboardMode:
+					running := byte(0)
+					if reconnect {
+						running = 1
+					}
+					data = []byte{0, running}
+				case protocol.DiskPoll:
+					data = diskPoll(1, 7, 0)
+				}
+				respond(request, data)
+			}
+			offset := 0
+			for offset < 512 {
+				request := readPTYFrame(t, board)
+				if request.Command != protocol.DiskData || len(request.Data) < 6 || binary.LittleEndian.Uint16(request.Data) != 0x1234 || int(binary.LittleEndian.Uint16(request.Data[2:])) != offset || !bytes.Equal(request.Data[5:], image[7*512+offset:7*512+offset+len(request.Data)-5]) {
+					t.Fatalf("invalid disk data: %+v", request)
+				}
+				offset += len(request.Data) - 5
+				respond(request, []byte{0})
+			}
+			request := readPTYFrame(t, board)
+			if request.Command != protocol.TerminalPoll {
+				t.Fatalf("expected terminal poll, got %x", request.Command)
+			}
+			respond(request, append([]byte{0, 1}, []byte("HOME8088 OS READY")...))
+			waitPTYText(t, tty, "HOME8088 OS READY")
+			if _, err := tty.Write([]byte{3}); err != nil {
+				t.Fatal(err)
+			}
+			for {
+				request := readPTYFrame(t, board)
+				if request.Command == protocol.KeyboardMode && bytes.Equal(request.Data, []byte{0}) {
+					respond(request, []byte{0, 1})
+					break
+				}
+				switch request.Command {
+				case protocol.DiskPoll:
+					respond(request, diskPoll(0, 0, 0))
+				case protocol.TerminalPoll:
+					respond(request, []byte{0, 1})
+				default:
+					t.Fatalf("unexpected exit command %x", request.Command)
+				}
+			}
+			waitKeyboardExit(t, done, tty)
+		})
+	}
 }

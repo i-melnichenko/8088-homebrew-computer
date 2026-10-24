@@ -5,47 +5,17 @@ MENU_BAR_CELLS equ LCD_COLUMNS - 2  ; '[' + 18 progress cells + ']'
 menu_key:
     cmp byte [es:MENU_PAGE], PAGE_MENU
     je .root
-    cmp byte [es:MENU_PAGE], PAGE_CUSTOM
-    je .custom
-    cmp byte [es:MENU_PAGE], PAGE_INFO
-    je .info_keys
     cmp al, KEY_BACK
-    jne .enter
-    cmp byte [es:MENU_PAGE], PAGE_TEST
-    jne .back
-    mov byte [es:MENU_PAGE], PAGE_CANCELLED
-    jmp .changed
-.back:
-    cmp byte [es:MENU_PAGE], PAGE_PROGRAM
-    jne .root_back
-    mov byte [es:MENU_PAGE], PAGE_CUSTOM
-    mov al, [es:ACTIVE_ID]
-    dec al
-    mov [es:MENU_SELECTED], al
-    jmp .changed
-.root_back:
-    mov byte [es:MENU_PAGE], PAGE_MENU
-    jmp .changed
-.enter:
+    je .back
+    cmp byte [es:MENU_PAGE], PAGE_INFO
+    je .info
+    cmp byte [es:MENU_PAGE], PAGE_CONFIRM
+    jne .nothing
     cmp al, KEY_ENTER
     jne .nothing
-    cmp byte [es:MENU_PAGE], PAGE_CONFIRM
-    jne .program
     call memory_start
     jmp .changed
-.program:
-    cmp byte [es:MENU_PAGE], PAGE_PROGRAM
-    jne .nothing
-    cmp byte [es:UPLOAD_ACTIVE], 0
-    jne .nothing
-    mov al, [es:ACTIVE_ID]
-    cmp al, [es:PROGRAM_COUNT]
-    ja .nothing
-    mov al, 1
-    ret
-.info_keys:
-    cmp al, KEY_BACK
-    je .root_back
+.info:
     cmp al, KEY_UP
     jne .info_down
     cmp byte [es:INFO_TOP], 0
@@ -59,20 +29,9 @@ menu_key:
     jae .nothing
     inc byte [es:INFO_TOP]
     jmp .changed
-.custom:
-    cmp al, KEY_BACK
-    jne .custom_choose
-    mov byte [es:MENU_SELECTED], 1
-    jmp .root_back
-.custom_choose:
-    cmp al, KEY_ENTER
-    jne .root
-    mov al, [es:MENU_SELECTED]
-    inc al
-    cmp al, [es:PROGRAM_COUNT]
-    ja .nothing
-    mov [es:ACTIVE_ID], al
-    mov byte [es:MENU_PAGE], PAGE_PROGRAM
+.back:
+    call memory_cancel
+    mov byte [es:MENU_PAGE], PAGE_MENU
     jmp .changed
 .root:
     cmp al, KEY_UP
@@ -94,23 +53,29 @@ menu_key:
 .choose:
     cmp al, KEY_ENTER
     jne .nothing
-    mov al, [es:MENU_SELECTED]
-    test al, al
-    jnz .ram
+    cmp byte [es:MENU_SELECTED], 1
+    je .memory
+    cmp byte [es:MENU_SELECTED], 2
+    je .show_info
+    cmp byte [es:API_HOST_MODE], 2
+    jne .no_boot
+    RUNTIME_ENTER
+    cmp byte [es:PC_MOUNTED], 1
+    jne .unavailable
+    test byte [es:RT_FLAGS], RT_TIMER
+    jz .unavailable
+    RUNTIME_LEAVE
+    mov al, 1
+    ret
+.unavailable:
+    RUNTIME_LEAVE
+.no_boot:
     mov byte [es:MENU_PAGE], PAGE_NO_BOOT
     jmp .changed
-.ram:
-    cmp al, 1
-    jne .memory
-    mov byte [es:MENU_PAGE], PAGE_CUSTOM
-    mov byte [es:MENU_SELECTED], 0
-    jmp .changed
 .memory:
-    cmp al, 2
-    jne .info
     mov byte [es:MENU_PAGE], PAGE_CONFIRM
     jmp .changed
-.info:
+.show_info:
     mov byte [es:MENU_PAGE], PAGE_INFO
     mov byte [es:INFO_TOP], 0
 .changed:
@@ -139,59 +104,19 @@ menu_render:
     mov bl, [es:MENU_PAGE]
     shl bx, 1
     mov si, [menu_headers + bx]
-    cmp byte [es:MENU_PAGE], PAGE_PROGRAM
-    jne .header_rom
-    mov al, [es:ACTIVE_ID]
-    call program_record
-    mov si, bx
-    call menu_ram_line
-    jmp .header_done
-.header_rom:
     call menu_line
-.header_done:
     mov al, [es:MENU_PAGE]
-    cmp al, PAGE_CUSTOM
-    je .root_layout
     cmp al, PAGE_MENU
     jne .info
-.root_layout:
     xor bp, bp
-    cmp byte [es:MENU_SELECTED], 3
-    jne .root_rows
-    inc bp
-.root_rows:
     mov dx, 3
 .row:
-    cmp byte [es:MENU_PAGE], PAGE_CUSTOM
-    jne .rom_row
-    push di
-    mov si, menu_empty
-    call menu_line
-    pop di
-    mov ax, bp
-    inc ax
-    cmp al, [es:PROGRAM_COUNT]
-    ja .custom_empty
-    push dx
-    call program_record
-    pop dx
-    mov si, bx
-    push di
-    add di, 2
-    call menu_ram_line_short
-    pop di
-.custom_empty:
-    mov bx, di
-    add di, LCD_COLUMNS
-    jmp .selection
-.rom_row:
     mov bx, bp
     shl bx, 1
     mov si, [menu_names + bx]
     push di
     call menu_line
     pop bx
-.selection:
     mov ax, bp
     cmp al, [es:MENU_SELECTED]
     jne .unselected
@@ -200,46 +125,11 @@ menu_render:
     inc bp
     dec dx
     jnz .row
-    mov ax, bp
-    sub ax, 3                       ; first visible item
-    mov bx, MENU_ITEMS
-    call menu_scroll_rail
     jmp .done
 .info:
     cmp al, PAGE_INFO
-    jne .program
-    call info_render
-    jmp .done
-.program:
-    cmp al, PAGE_PROGRAM
     jne .confirm
-    mov si, program_details
-    call menu_line
-    mov al, [es:ACTIVE_ID]
-    call program_record
-    mov bp, bx
-    mov di, SCREEN_BUFFER + 26
-    mov ax, [es:bp + 18]
-    call menu_hex16
-    mov di, SCREEN_BUFFER + 35
-    mov ax, [es:bp + 16]
-    call menu_hex16
-    mov di, SCREEN_BUFFER + 40
-    mov ax, [es:bp + 18]
-    mov bx, ax
-    mov dl, [es:ACTIVE_ID]
-    cmp dl, [es:PROGRAM_COUNT]
-    jbe .program_bar
-    mov ax, [es:MONITOR_RECEIVED]
-.program_bar:
-    call menu_bar
-    mov si, program_loading
-    cmp byte [es:UPLOAD_ACTIVE], 0
-    jne .program_footer
-    mov si, program_run
-.program_footer:
-    mov di, SCREEN_BUFFER + 60
-    call menu_line
+    call info_render
     jmp .done
 .confirm:
     cmp al, PAGE_CONFIRM
@@ -500,23 +390,32 @@ menu_bar_cells:
     stosb
     ret
 
-; No timer/IRQ support in the current BIOS. Count idle iterations after a draw;
+; Use 18.2-Hz time when available, otherwise count idle iterations after a draw;
 ; toggles schedule two short LCD operations, never a full redraw or a sleep.
 ; The logical SCREEN_BUFFER retains '>'; blinking changes only the LCD cell.
 menu_blink_step:
     cmp byte [es:MENU_PAGE], PAGE_MENU
-    je .menu
-    cmp byte [es:MENU_PAGE], PAGE_CUSTOM
     jne .done
 .menu:
     cmp byte [es:SCREEN_POSITION], 80
     jb .done
     cmp byte [es:MENU_BLINK_PENDING], 0
     jne .done
+    test byte [ss:RT_FLAGS], RT_TIMER
+    jz .software_clock
+    mov ax, [ss:RT_TICKS]
+    sub ax, [es:MENU_BLINK_TICKS]
+    cmp ax, 9
+    jb .done
+    mov ax, [ss:RT_TICKS]
+    mov [es:MENU_BLINK_TICKS], ax
+    jmp .toggle
+.software_clock:
     inc word [es:MENU_BLINK_TICKS]
     cmp word [es:MENU_BLINK_TICKS], MENU_BLINK_PERIOD
     jb .done
     mov word [es:MENU_BLINK_TICKS], 0
+.toggle:
     xor byte [es:MENU_BLINK_PHASE], 1
     mov byte [es:MENU_BLINK_PENDING], 1
 .done:
@@ -593,27 +492,21 @@ menu_lcd_step:
 menu_lcd_rows: db LCD_LINE1, LCD_LINE2, LCD_LINE3, LCD_LINE4
 ; Indexed by PAGE_* in state.inc. Confirmation is a warning dialog;
 ; test progress/result/cancel retain the MEMORY CHECK section header.
-menu_headers: dw menu_title, info_title, program_title, memory_confirm_title
-              dw memory_title, memory_title, boot_title, memory_title, custom_title
-menu_title: db '8088 BIOS ', BIOS_VERSION, 0
-menu_names: dw menu_boot, menu_custom, menu_memory, menu_info
+menu_headers:
+    dw menu_root_title, info_title, memory_confirm_title, memory_title
+    dw memory_title, boot_title, memory_title
+menu_root_title: db "8088 MAINBOARD", 0
+menu_names: dw menu_boot, menu_memory, menu_info
 menu_boot: db '  Default boot', 0
-menu_custom: db '  Custom programs', 0
-menu_empty: db '  Empty', 0
-custom_title: db 'CUSTOM PROGRAMS', 0
 menu_memory: db '  Memory check', 0
 menu_info: db '  Info', 0
 back_hint: db 'ESC: BACK', 0
 boot_title: db 'DEFAULT BOOT', 0
 boot_missing: db 'NO BOOT TARGET', 0
-boot_hint: db 'Use Custom programs', 0
-program_title: db 'RAM PROGRAM', 0
-program_details: db 'SIZE: 0000 AT: 0000', 0
-program_loading: db 'RECEIVING...', 0
-program_run: db 'ENTER:RUN ESC:BACK', 0
+boot_hint: db 'Mount UART disk', 0
 memory_title: db 'MEMORY CHECK', 0
-memory_confirm_title: db 'ALL RAM PROGRAMS', 0
-memory_confirm_warning: db 'WILL BE DELETED!', 0
+memory_confirm_title: db 'FULL RAM TEST', 0
+memory_confirm_warning: db 'RAM WILL BE ERASED!', 0
 memory_confirm_choices: db 'YES:ENTER  NO:ESC', 0
 memory_region: db 'RAM: 00000-00000', 0
 memory_ok: db 'DONE 00000-00000', 0

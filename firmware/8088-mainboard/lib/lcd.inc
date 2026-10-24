@@ -1,4 +1,6 @@
 ; HD44780-compatible LCD. Rev2 display module: bridge JP1 (80h..9Fh).
+; R/W is tied to GND: output is always attempted with fixed bounded delays.
+; There is no physical presence/busy check; the same ROM works without LCD.
 
 LCD_COMMAND_PORT equ 080h
 LCD_DATA_PORT    equ 081h
@@ -83,7 +85,9 @@ lcd_clear_delay:
     ret
 
 lcd_delay:
-    mov cx, 01000h
+    ; Match the established monitor renderer's inter-write guard. Power-on,
+    ; startup and clear waits above remain separate and conservative.
+    mov cx, 128
 .wait:
     loop .wait
     ret

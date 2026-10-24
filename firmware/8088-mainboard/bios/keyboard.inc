@@ -6,7 +6,8 @@ KEYBOARD_END equ 003Eh
 ; AX=ASCII:scan (AL=ASCII, AH=scan). CF=1 if the ring is full.
 keyboard_enqueue:
     push es
-    mov dx, 0040h
+    LOAD_BDA dx
+    add dx, 0040h
     mov es, dx
     mov bx, [es:001Ch]
     mov dx, bx
@@ -30,7 +31,8 @@ keyboard_enqueue:
 ; AX=oldest key, CF=1 if empty. Peek never advances the BDA head.
 keyboard_peek:
     push es
-    mov ax, 0040h
+    LOAD_BDA ax
+    add ax, 0040h
     mov es, ax
     mov bx, [es:001Ah]
     cmp bx, [es:001Ch]
@@ -48,7 +50,8 @@ keyboard_take:
     call keyboard_peek
     jc .done
     push es
-    mov dx, 0040h
+    LOAD_BDA dx
+    add dx, 0040h
     mov es, dx
     add bx, 2
     cmp bx, KEYBOARD_END
@@ -64,7 +67,7 @@ keyboard_take:
 ; Menu and payloads consume the same queue. Never read raw UART here;
 ; incoming host events have already been checked by the frame decoder.
 keyboard_menu_step:
-    cmp byte [es:API_RUNNING], 0
+    cmp byte [es:OS_RUNNING], 0
     jne .nothing
     call keyboard_take
     jc .nothing
