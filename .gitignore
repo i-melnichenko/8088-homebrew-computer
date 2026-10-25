@@ -8,3 +8,7 @@ firmware/*/*.bin
 firmware/8088-mainboard/build/
 */**/*_drc_violations.json
 /tools/boardctl/boardctl
+
+# Python emulator and disk-image builder caches
+__pycache__/
+*.pyc

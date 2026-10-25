@@ -15,6 +15,7 @@ import (
 )
 
 type biosSerial struct {
+	wireVersion   byte
 	image         []byte
 	mode          bool
 	writable      bool
@@ -39,7 +40,15 @@ func newBIOSSerial() *biosSerial {
 }
 
 func (s *biosSerial) Write(packet []byte) (int, error) {
-	f, err := protocol.Decode(packet)
+	f, version, err := protocol.DecodeAnyVersion(packet)
+	expected := s.wireVersion
+	if expected == 0 {
+		expected = protocol.Version
+	}
+	if err == nil && version != expected {
+		s.packet = nil
+		return len(packet), nil
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -120,7 +129,7 @@ func (s *biosSerial) Write(packet []byte) (int, error) {
 	default:
 		return 0, errors.New("unexpected command in EEPROM transaction")
 	}
-	s.packet, err = protocol.Encode(protocol.Frame{Command: f.Command | 0x80, Sequence: f.Sequence, Data: data})
+	s.packet, err = protocol.EncodeVersion(protocol.Frame{Command: f.Command | 0x80, Sequence: f.Sequence, Data: data}, expected)
 	s.lastWrite = append([]byte(nil), packet...)
 	s.lastReply = append([]byte(nil), s.packet...)
 	if f.Command == s.dropCommand && !s.dropped {
@@ -305,8 +314,8 @@ func TestBIOSWriteFailureNeverResets(t *testing.T) {
 }
 
 func TestBIOSCommandsValidateBeforeOpeningSerial(t *testing.T) {
-	image := writeUploadFile(t, "bios.bin", make([]byte, protocol.BIOSImageSize))
-	short := writeUploadFile(t, "short.bin", []byte{0})
+	image := writeTestFile(t, "bios.bin", make([]byte, protocol.BIOSImageSize))
+	short := writeTestFile(t, "short.bin", []byte{0})
 	for _, args := range [][]string{
 		{"bios-flasher-mode", "--crc16", "0x1234"}, {"bios-flasher-mode", "extra"},
 		{"bios-read", "extra"}, {"bios-read", "--verify", short}, {"bios-read", "--output", image},
@@ -332,7 +341,7 @@ func TestBIOSCommandsValidateBeforeOpeningSerial(t *testing.T) {
 }
 
 func TestBIOSReadAndWriteCLI(t *testing.T) {
-	image := writeUploadFile(t, "bios.bin", memoryPattern(0, protocol.BIOSImageSize))
+	image := writeTestFile(t, "bios.bin", memoryPattern(0, protocol.BIOSImageSize))
 	output := filepath.Join(t.TempDir(), "readback.bin")
 	s := newBIOSSerial()
 	if err := runWithSerial([]string{"bios-read", "--output", output, "--verify", image}, func(string) (io.ReadWriteCloser, error) { return s, nil }); err != nil {
@@ -345,5 +354,24 @@ func TestBIOSReadAndWriteCLI(t *testing.T) {
 	}
 	if s.resetCount != 1 {
 		t.Fatal("CLI did not reset after verification")
+	}
+}
+
+func TestCompleteBIOSUpgradeUsesInstalledWireVersion(t *testing.T) {
+	for _, version := range []byte{1, 2} {
+		s := newBIOSSerial()
+		s.wireVersion = version
+		s.writable = true
+		c, err := client.NewFlasher(s, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		image := bytes.Repeat([]byte{0x42}, protocol.BIOSImageSize)
+		if err := writeBIOS(c, biosWriteOptions{data: image, resetAfter: true, timeout: defaultBIOSWriteTimeout}, nil); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(s.image, image) || s.resetCount != 1 {
+			t.Fatal("EEPROM image or reset mismatch")
+		}
 	}
 }

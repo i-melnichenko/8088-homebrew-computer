@@ -3,6 +3,7 @@ package apps
 import (
 	"bytes"
 	"context"
+	"io"
 	"strings"
 	"testing"
 
@@ -108,8 +109,6 @@ func TestKeyboardCtrlCExitsInEveryInputState(t *testing.T) {
 		chars []byte
 	}{
 		{"normal", []byte{3}},
-		{"prefix", []byte{29, 3}},
-		{"upload prompt", []byte{29, 'u', 3}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			s := &keyboardTransport{data: []byte{0, 0}}
@@ -179,19 +178,32 @@ func TestKeyboardCancellationIsNormalExit(t *testing.T) {
 	}
 }
 
-func TestUploadBounds(t *testing.T) {
-	for _, test := range []struct {
-		name string
-		size int
-		ok   bool
-	}{
-		{"hello", 1, true}, {"penguins", maxPayloadSize, true},
-		{"abcdefghijklmnop", 1, false}, {"test", maxPayloadSize + 1, false},
-		{"test", 0, false}, {"", 1, false}, {"   ", 2, false},
-		{"тест", 1, false}, {"a\nb", 1, false},
-	} {
-		if err := validateUpload(test.name, test.size); (err == nil) != test.ok {
-			t.Errorf("%q + %d: %v (valid=%v)", test.name, test.size, err, test.ok)
+func TestTerminalOutput(t *testing.T) {
+	for _, data := range [][]byte{{0, 0}, {0, 1, 27, '[', '3', '1', 'm', 'A'}} {
+		s := &keyboardTransport{data: data}
+		var out bytes.Buffer
+		running, err := pollTerminal(context.Background(), client.New(s, nil), &out)
+		if err != nil || running != (data[1] == 1) || !bytes.Equal(out.Bytes(), data[2:]) {
+			t.Fatalf("output %x: %v %v %q", data, running, err, out.String())
 		}
+		if len(s.requests) != 1 || s.requests[0].Command != protocol.TerminalPoll {
+			t.Fatal(s.requests)
+		}
+	}
+	for _, data := range [][]byte{{}, {0}, {0, 2}, {12}, append([]byte{0, 0}, make([]byte, 65)...)} {
+		s := &keyboardTransport{data: data}
+		if _, err := pollTerminal(context.Background(), client.New(s, nil), io.Discard); err == nil {
+			t.Fatalf("accepted %x", data)
+		}
+	}
+}
+
+func TestTerminalCommand(t *testing.T) {
+	cmd, err := prepareCommand([]string{"-port", "test", "terminal"})
+	if err != nil || cmd.name != "terminal" || cmd.port != "test" {
+		t.Fatalf("%+v %v", cmd, err)
+	}
+	if _, err := prepareCommand([]string{"terminal", "extra"}); err == nil {
+		t.Fatal("accepted arguments")
 	}
 }

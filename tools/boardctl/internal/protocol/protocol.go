@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	Version              = 1
+	Version              = 2 // binary framing major
+	Revision             = "2.0"
 	MaxPayloadLength     = 128
-	MaxUploadDataLength  = MaxPayloadLength
 	MaxMemoryReadLength  = MaxPayloadLength - 1 // response starts with status
 	MaxMemoryWriteLength = MaxPayloadLength - 4 // request starts with address
 	BIOSImageSize        = 32768
@@ -27,24 +27,28 @@ const (
 	MemoryRead  byte = 0x07
 	MemoryWrite byte = 0x08
 
-	ProgramList         byte = 0x09
-	ProgramUploadBegin  byte = 0x0a
-	ProgramUploadData   byte = 0x0b
-	ProgramUploadCommit byte = 0x0c
-	ProgramUploadAbort  byte = 0x0d
-	ProgramExec         byte = 0x0e
-	ProgramDelete       byte = 0x0f
-	ProgramRename       byte = 0x10
-
-	KeyboardMode        byte = 0x11
-	KeyboardEvent       byte = 0x12
+	KeyboardMode        byte = 0x09
+	KeyboardEvent       byte = 0x0a
 	KeyboardFlagRunning byte = 1
+
+	TerminalPoll         byte = 0x0d
+	IRQTest              byte = 0x0e
+	StatusPICMissing     byte = 21
+	StatusPITMissing     byte = 22
+	StatusRAM0Required   byte = 23
+	StatusPITNotCounting byte = 24
+
+	RAMInfo          byte = 0x0b
+	RAMTest          byte = 0x0c
+	RAMTestConfirm   byte = 0xa5
+	RAMFlagHeartbeat byte = 2
 )
 
 var (
-	ErrFrame  = errors.New("invalid protocol frame")
-	ErrCRC    = errors.New("protocol CRC mismatch")
-	ErrLength = errors.New("invalid protocol data length")
+	ErrVersion = errors.New("unsupported UART protocol; boardctl requires 2.0")
+	ErrFrame   = errors.New("invalid protocol frame")
+	ErrCRC     = errors.New("protocol CRC mismatch")
+	ErrLength  = errors.New("invalid protocol data length")
 )
 
 type Frame struct {
@@ -53,12 +57,15 @@ type Frame struct {
 	Data     []byte
 }
 
-func Encode(f Frame) ([]byte, error) {
+func Encode(f Frame) ([]byte, error) { return EncodeVersion(f, Version) }
+
+// EncodeVersion is used only by the EEPROM upgrade transport.
+func EncodeVersion(f Frame, version byte) ([]byte, error) {
 	if len(f.Data) > MaxPayloadLength {
 		return nil, ErrLength
 	}
 	raw := make([]byte, 5+len(f.Data)+2)
-	raw[0], raw[1], raw[2] = Version, f.Command, f.Sequence
+	raw[0], raw[1], raw[2] = version, f.Command, f.Sequence
 	binary.LittleEndian.PutUint16(raw[3:5], uint16(len(f.Data)))
 	copy(raw[5:], f.Data)
 	binary.LittleEndian.PutUint16(raw[len(raw)-2:], CRC16(raw[:len(raw)-2]))
@@ -67,21 +74,34 @@ func Encode(f Frame) ([]byte, error) {
 }
 
 func Decode(packet []byte) (Frame, error) {
+	f, version, err := DecodeAnyVersion(packet)
+	if err != nil {
+		return Frame{}, err
+	}
+	if version != Version {
+		return Frame{}, ErrVersion
+	}
+	return f, nil
+}
+
+// DecodeAnyVersion validates framing, bounds and CRC before exposing a version.
+// Only the EEPROM upgrade transport may accept a different major version.
+func DecodeAnyVersion(packet []byte) (Frame, byte, error) {
 	if len(packet) < 2 || packet[0] != 0 || packet[len(packet)-1] != 0 {
-		return Frame{}, ErrFrame
+		return Frame{}, 0, ErrFrame
 	}
 	raw, err := cobsDecode(packet[1 : len(packet)-1])
-	if err != nil || len(raw) < 7 || raw[0] != Version {
-		return Frame{}, ErrFrame
+	if err != nil || len(raw) < 7 {
+		return Frame{}, 0, ErrFrame
 	}
-	dataLen := int(binary.LittleEndian.Uint16(raw[3:5]))
-	if dataLen > MaxPayloadLength || len(raw) != 5+dataLen+2 {
-		return Frame{}, ErrLength
+	n := int(binary.LittleEndian.Uint16(raw[3:5]))
+	if n > MaxPayloadLength || len(raw) != 5+n+2 {
+		return Frame{}, 0, ErrLength
 	}
 	if CRC16(raw[:len(raw)-2]) != binary.LittleEndian.Uint16(raw[len(raw)-2:]) {
-		return Frame{}, ErrCRC
+		return Frame{}, 0, ErrCRC
 	}
-	return Frame{Command: raw[1], Sequence: raw[2], Data: append([]byte(nil), raw[5:len(raw)-2]...)}, nil
+	return Frame{Command: raw[1], Sequence: raw[2], Data: append([]byte(nil), raw[5:len(raw)-2]...)}, raw[0], nil
 }
 
 func CRC16(data []byte) uint16 {
@@ -139,3 +159,10 @@ func cobsDecode(in []byte) ([]byte, error) {
 	}
 	return out, nil
 }
+
+const (
+	DiskMount byte = 0x0f
+	DiskBoot  byte = 0x10
+	DiskPoll  byte = 0x11
+	DiskData  byte = 0x12
+)

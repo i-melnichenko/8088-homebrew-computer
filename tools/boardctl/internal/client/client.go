@@ -16,9 +16,12 @@ const monitorAttempts = 10
 // Calls must be serialized, and transport reads must return periodically
 // so response deadlines can be checked.
 type Client struct {
-	serial      io.ReadWriter
-	diagnostics io.Writer
-	sequence    byte
+	serial       io.ReadWriter
+	diagnostics  io.Writer
+	sequence     byte
+	monitorReady bool
+	version      byte
+	flashing     bool
 }
 
 // New creates a client. The caller owns and closes the transport.
@@ -27,7 +30,7 @@ func New(serial io.ReadWriter, diagnostics io.Writer) *Client {
 	if diagnostics == nil {
 		diagnostics = io.Discard
 	}
-	return &Client{serial: serial, diagnostics: diagnostics}
+	return &Client{serial: serial, diagnostics: diagnostics, version: protocol.Version}
 }
 
 // Transact sends a request with the default retry count.
@@ -58,7 +61,10 @@ func (c *Client) transact(ctx context.Context, request protocol.Frame, attempts 
 	}
 	request.Sequence = c.sequence
 	c.sequence++
-	packet, err := protocol.Encode(request)
+	if c.flashing && request.Command != protocol.Ping && request.Command != protocol.Reset && request.Command != protocol.BIOSFlasherMode && request.Command != protocol.BIOSRead && request.Command != protocol.BIOSWrite {
+		return protocol.Frame{}, errors.New("upgrade transport permits EEPROM operations only")
+	}
+	packet, err := protocol.EncodeVersion(request, c.version)
 	if err != nil {
 		return protocol.Frame{}, err
 	}
@@ -66,9 +72,7 @@ func (c *Client) transact(ctx context.Context, request protocol.Frame, attempts 
 		if err := ctx.Err(); err != nil {
 			return protocol.Frame{}, err
 		}
-		if attempt == 0 && request.Command == protocol.Ping {
-			fmt.Fprintln(c.diagnostics, "boardctl: waiting for board monitor; press Reset if needed")
-		} else if attempt > 0 {
+		if attempt > 0 {
 			fmt.Fprintf(c.diagnostics, "boardctl: retrying command %#02x (%d/%d)\n", request.Command, attempt+1, attempts)
 		}
 		if _, err = c.serial.Write(packet); err != nil {
@@ -80,10 +84,25 @@ func (c *Client) transact(ctx context.Context, request protocol.Frame, attempts 
 			if err != nil {
 				break
 			}
-			frame, err := protocol.Decode(response)
+			frame, version, err := protocol.DecodeAnyVersion(response)
+			if err == nil && version != c.version {
+				if !c.flashing && frame.Command == request.Command|0x80 && frame.Sequence == request.Sequence {
+					return protocol.Frame{}, protocol.ErrVersion
+				}
+				if frame.Command == request.Command|0x80 && frame.Sequence == request.Sequence {
+					c.version = version
+				}
+			}
 			if err == nil && frame.Command == request.Command|0x80 && frame.Sequence == request.Sequence {
+				c.monitorReady = true
 				return frame, nil
 			}
+		}
+		// A successful initial probe is silent. Offer Reset only after the
+		// first PING really timed out, never on cancellation or an I/O error.
+		if attempt == 0 && request.Command == protocol.Ping && !c.monitorReady &&
+			ctx.Err() == nil && !time.Now().Before(deadline) {
+			fmt.Fprintln(c.diagnostics, "boardctl: waiting for board monitor; press Reset if needed")
 		}
 	}
 	if err := ctx.Err(); err != nil {
@@ -129,4 +148,22 @@ func readPacketContext(ctx context.Context, file io.Reader, deadline time.Time) 
 		}
 	}
 	return nil, errors.New("timeout")
+}
+
+// NewFlasher negotiates the installed EEPROM monitor independently of normal
+// protocol 2.0 operations. Service command IDs 01..06 share the upgrade ABI.
+func NewFlasher(serial io.ReadWriter, diagnostics io.Writer) (*Client, error) {
+	c := New(serial, nil)
+	c.flashing = true
+	for _, version := range []byte{protocol.Version, 1} {
+		c.version = version
+		f, err := c.TransactAttempts(protocol.Frame{Command: protocol.Ping}, 1)
+		if err == nil && len(f.Data) == 1 && f.Data[0] == 0 {
+			if diagnostics != nil {
+				c.diagnostics = diagnostics
+			}
+			return c, nil
+		}
+	}
+	return nil, errors.New("no EEPROM upgrade monitor answered protocol probes (2, 1); press Reset and retry")
 }

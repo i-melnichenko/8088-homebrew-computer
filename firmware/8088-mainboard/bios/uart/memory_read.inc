@@ -27,8 +27,27 @@ monitor_memory_read:
     ja .error
     ; RX is also readable RAM. Use memmove direction if copying its bytes
     ; upward into the reply would overwrite unread source bytes.
-    test dx, dx
-    jnz .forward
+    push ax
+    push cx
+    mov cl, dl
+    shr cl, 1
+    mov bx, 1
+    shl bx, cl
+    test [es:RAM_BANK_MASK], bl
+    jz .missing
+    mov cx, bp
+    shr cl, 1
+    mov bx, 1
+    shl bx, cl
+    test [es:RAM_BANK_MASK], bl
+    jz .missing
+    mov ax, ss
+    mov cl, 12
+    shr ax, cl
+    cmp dx, ax
+    pop cx
+    pop ax
+    jne .forward
     mov bx, ax
     cmp bx, BIOS_STATE_BASE + RX_BUFFER + 6
     jae .forward
@@ -72,6 +91,9 @@ monitor_memory_read:
     mov cx, bp
     inc cx
     jmp monitor_reply_data
+.missing:
+    pop cx
+    pop ax
 .error:
     mov al, 14                      ; invalid memory request/range
     jmp monitor_reply

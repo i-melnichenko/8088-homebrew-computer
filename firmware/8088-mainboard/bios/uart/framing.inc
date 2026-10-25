@@ -1,7 +1,7 @@
 ; Read a zero-delimited COBS packet.  On success ES addresses the buffers
 ; and BP is the decoded frame size.
 monitor_read_frame:
-    mov ax, MONITOR_BUFFER_SEGMENT
+    LOAD_STATE ax
     mov es, ax
     mov di, [es:RX_COUNT]
 .read:

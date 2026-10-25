@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"unicode/utf8"
+	"time"
 
 	"github.com/i-melnichenko/8088-homebrew-computer/tools/boardctl/internal/client"
 	"github.com/i-melnichenko/8088-homebrew-computer/tools/boardctl/internal/protocol"
@@ -150,7 +151,15 @@ func keyboardExchangeContext(ctx context.Context, c *client.Client, command byte
 	return f.Data[1]&protocol.KeyboardFlagRunning != 0, nil
 }
 
-func keyboard(c *client.Client) error {
+func keyboard(c *client.Client, startup terminalOptions) error {
+	return interactive(c, false, startup)
+}
+
+func terminal(c *client.Client, startup terminalOptions) error {
+	return interactive(c, true, startup)
+}
+
+func interactive(c *client.Client, terminalMode bool, startup terminalOptions) error {
 	// Install signal handling before the first UART exchange, not after attach.
 	signalCtx, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	defer stopSignals()
@@ -163,12 +172,27 @@ func keyboard(c *client.Client) error {
 			fmt.Fprintln(os.Stderr, "boardctl: detach not acknowledged; Reset restores raw UART mode")
 		}
 	}()
-	fmt.Fprintln(os.Stderr, "boardctl: connecting keyboard; wait for 'Keyboard connected' before typing; Ctrl-C cancels (press Reset if needed)")
-	if _, err := keyboardExchangeContext(ctx, c, protocol.KeyboardMode, []byte{1}, 10); err != nil {
+	if terminalMode {
+		fmt.Fprintln(os.Stderr, "boardctl: connecting terminal; Ctrl-C cancels (press Reset if needed)")
+	} else {
+		fmt.Fprintln(os.Stderr, "boardctl: connecting keyboard; wait for 'Keyboard connected' before typing; Ctrl-C cancels (press Reset if needed)")
+	}
+	mode := byte(1)
+	if terminalMode {
+		mode = 2
+	}
+	running, err := keyboardExchangeContext(ctx, c, protocol.KeyboardMode, []byte{mode}, 10)
+	if err != nil {
 		if ctx.Err() != nil {
 			return nil
 		}
+		if terminalMode {
+			return fmt.Errorf("attach terminal (requires BIOS with terminal support; press Reset if needed): %w", err)
+		}
 		return fmt.Errorf("attach keyboard (press Reset if needed): %w", err)
+	}
+	if startup.bootDisk && running {
+		return errors.New("an operating system is already running; reboot before booting another image")
 	}
 	settings, err := ttyCommand("-g").Output()
 	if err != nil {
@@ -222,13 +246,37 @@ func keyboard(c *client.Client) error {
 		}
 	}()
 	defer func() { close(stop); <-done }()
-	fmt.Fprint(os.Stderr, "Keyboard connected; use the board LCD. Ctrl-C: quit. Ctrl-] then u: upload, ]: send Ctrl-].\r\n")
+	if startup.diskImage != nil && !running {
+		if err := checkStatusReply(c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.DiskMount}, 3)); err != nil {
+			return fmt.Errorf("mount disk: %w", err)
+		}
+		if startup.bootDisk {
+			if err := checkStatusReply(c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.DiskBoot}, 3)); err != nil {
+				return fmt.Errorf("boot disk: %w", err)
+			}
+			fmt.Fprint(os.Stderr, "Booting read-only floppy A:.\r\n")
+		}
+	}
+	if terminalMode {
+		fmt.Fprint(os.Stderr, "Terminal connected. Ctrl-C: quit.\r\n")
+		defer fmt.Fprint(os.Stdout, "\x1b[0m\x1b[?25h\r\n")
+		return interactiveLoop(ctx, c, inputs, done, true, os.Stdout, startup.diskImage)
+	}
+	fmt.Fprint(os.Stderr, "Keyboard connected; use the board LCD. Ctrl-C: quit.\r\n")
 	return keyboardLoop(ctx, c, inputs, done)
 }
 
 func keyboardLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}) error {
-	var prefix, prompt bool
-	var path string
+	return interactiveLoop(ctx, c, inputs, done, false, io.Discard)
+}
+
+func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}, terminalMode bool, out io.Writer, disks ...[]byte) error {
+	var ticks <-chan time.Time
+	if terminalMode {
+		ticker := time.NewTicker(50 * time.Millisecond)
+		defer ticker.Stop()
+		ticks = ticker.C
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -238,84 +286,65 @@ func keyboardLoop(ctx context.Context, c *client.Client, inputs <-chan terminalI
 				return nil
 			}
 			return errors.New("terminal input stopped")
-		case input := <-inputs:
-			// Raw mode disables terminal signals: handle Ctrl-C as a local exit,
-			// never a BIOS key, in every input state. Real SIGINT is handled above.
-			if input.char == 3 {
-				fmt.Fprint(os.Stderr, "\r\nDisconnecting keyboard.\r\n")
-				return nil
-			}
-			if prompt {
-				switch input.char {
-				case 27:
-					prompt, path = false, ""
-					fmt.Fprint(os.Stderr, "\r\nUpload cancelled.\r\n")
-				case 13:
-					fmt.Fprint(os.Stderr, "\r\n")
-					data, err := os.ReadFile(path)
-					if err == nil {
-						_, err = uploadData(c, defaultProgramName(path), data, func(done, total int) {
-							fmt.Fprintf(os.Stderr, "\rUploading %d/%d bytes", done, total)
-							if done == total {
-								fmt.Fprint(os.Stderr, "\r\nVerifying RAM SHA-256...\r\n")
-							}
-						})
+		case <-ticks:
+			if len(disks) > 0 && disks[0] != nil {
+				if err := serviceDisk(ctx, c, disks[0]); err != nil {
+					if ctx.Err() != nil {
+						return nil
 					}
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "\r\nUpload failed: %v\r\n", err)
-					} else {
-						fmt.Fprint(os.Stderr, "\r\nUploaded and SHA-256 verified; select the program on the LCD.\r\n")
-					}
-					prompt, path = false, ""
-				case 8:
-					if len(path) > 0 {
-						_, size := utf8.DecodeLastRuneInString(path)
-						path = path[:len(path)-size]
-						fmt.Fprint(os.Stderr, "\b \b")
-					}
-				default:
-					if input.char >= ' ' {
-						text := string([]byte{input.char})
-						path += text
-						fmt.Fprint(os.Stderr, text)
-					}
+					return fmt.Errorf("virtual disk: %w", err)
 				}
-				continue
 			}
-			if prefix {
-				prefix = false
-				switch input.char {
-				case 'q', 'Q':
+			if _, err := pollTerminal(ctx, c, out); err != nil {
+				if ctx.Err() != nil {
 					return nil
-				case 'u', 'U':
-					running, err := keyboardExchangeContext(ctx, c, protocol.KeyboardMode, []byte{1}, 1)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Board not responding (program may not poll INT 16h): %v\r\n", err)
-						continue
-					}
-					if running {
-						fmt.Fprint(os.Stderr, "Return to the BIOS menu before uploading.\r\n")
-						continue
-					}
-					prompt, path = true, ""
-					fmt.Fprint(os.Stderr, "Binary path (Enter: upload, Esc: cancel): ")
-					continue
-				case ']':
-					input = terminalInput{char: 29}
-				default:
-					fmt.Fprint(os.Stderr, "Ctrl-C: quit. Ctrl-] commands: u upload, ] send Ctrl-].\r\n")
-					continue
 				}
-			} else if input.char == 29 {
-				prefix = true
-				continue
+				return fmt.Errorf("terminal output: %w", err)
+			}
+		case input := <-inputs:
+			if input.char == 3 {
+				return nil
 			}
 			if input.char >= 128 || input == (terminalInput{}) {
 				continue
 			}
 			if _, err := keyboardExchangeContext(ctx, c, protocol.KeyboardEvent, []byte{input.char, input.scan}, 3); err != nil {
-				fmt.Fprintf(os.Stderr, "Key not acknowledged (program must poll INT 16h): %v\r\n", err)
+				if ctx.Err() != nil {
+					return nil
+				}
+				return fmt.Errorf("keyboard input: %w", err)
 			}
 		}
 	}
+}
+
+// Only framed output is printed: protocol ACKs never reach the terminal.
+func pollTerminal(ctx context.Context, c *client.Client, out io.Writer) (bool, error) {
+	f, err := c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.TerminalPoll}, 3)
+	if err := checkResponse(f, err); err != nil {
+		return false, err
+	}
+	if len(f.Data) < 2 || len(f.Data) > 66 || f.Data[1]&^protocol.KeyboardFlagRunning != 0 {
+		return false, errors.New("invalid terminal output response")
+	}
+	if _, err := out.Write(f.Data[2:]); err != nil {
+		return false, err
+	}
+	return f.Data[1]&protocol.KeyboardFlagRunning != 0, nil
+}
+
+// Client diagnostics use LF; raw tty output requires CRLF to return to column 1.
+// This wrapper is only for host diagnostics, never the program's ANSI stream.
+type terminalDiagnostics struct{ io.Writer }
+
+func (w terminalDiagnostics) Write(p []byte) (int, error) {
+	encoded := bytes.ReplaceAll(p, []byte("\n"), []byte("\r\n"))
+	n, err := w.Writer.Write(encoded)
+	if n != len(encoded) && err == nil {
+		err = io.ErrShortWrite
+	}
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }

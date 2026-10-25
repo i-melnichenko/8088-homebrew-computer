@@ -59,6 +59,10 @@ uart_putc:
 
 ; Nonblocking receive: CF=1 when no byte is available, otherwise AL=byte.
 uart_try_getc:
+%ifdef BIOS_IRQ_UART_DRIVER
+    jmp runtime_uart_getc
+%endif
+uart_try_getc_poll:
     mov dx, UART_LSR
     in al, dx
     test al, UART_LSR_DATA_READY

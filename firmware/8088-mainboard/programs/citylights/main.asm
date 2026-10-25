@@ -1,6 +1,6 @@
 BITS 16
 CPU 8086
-ORG 0
+ORG 100h
 
 ; A stationary city alternates between night and day. Clouds drift across
 ; the sky; a two-column wipe replaces each scene from the right.
@@ -8,7 +8,7 @@ ORG 0
 %include "bios_api.inc"
 
 SCREEN_CELLS equ BIOS_LCD_COLUMNS * BIOS_LCD_ROWS
-; Current BIOS has no timer service. One polling delay is roughly 1/8 second at 4.77 MHz.
+; BIOS delay uses PIT when available and keeps terminal input serviced.
 TICKS_PER_SECOND equ 8
 INTRO_TICKS      equ 2 * TICKS_PER_SECOND
 SCENE_TICKS      equ 5 * TICKS_PER_SECOND
@@ -26,11 +26,28 @@ LIT_WALL     equ 6
 WALKER_GLYPH equ 7
 
 start:
-    cli
     cld
     mov ax, cs
     mov ds, ax
-
+    mov es, ax
+    mov ah, 0
+    int BIOS_INT_BOARD
+    and dx, BIOS_API_FEATURE_TIME | BIOS_API_FEATURE_UART_BLOCK | BIOS_API_FEATURE_CONSOLE_INFO
+    cmp dx, BIOS_API_FEATURE_TIME | BIOS_API_FEATURE_UART_BLOCK | BIOS_API_FEATURE_CONSOLE_INFO
+    jne .return
+    bios_console_info
+    mov [lcd_enabled], dl
+    mov byte [uart_enabled], 0
+    mov byte [link_failed], 0
+    cmp al, 1                     ; framed keyboard mode must not receive ANSI
+    je .lcd
+    mov byte [uart_enabled], 1
+    mov si, terminal_open
+    mov cx, terminal_open_end - terminal_open
+    call terminal_write
+.lcd:
+    cmp byte [lcd_enabled], 0
+    je .initialized
     bios_lcd_clear
     bios_lcd_glyph MOON_GLYPH, moon_glyph
     bios_lcd_glyph SUN_GLYPH, sun_glyph
@@ -41,6 +58,11 @@ start:
     bios_lcd_glyph LIT_WALL, lit_wall_glyph
     bios_lcd_glyph WALKER_GLYPH, walker_glyph_a
 
+.initialized:
+    mov di, terminal_old
+    mov cx, SCREEN_CELLS
+    mov al, 0FFh
+    rep stosb
     mov di, old_frame
     call fill_spaces
     call draw_intro
@@ -75,7 +97,14 @@ start:
     jmp .frame
 
 .done:
-    retf
+    cmp byte [uart_enabled], 0
+    je .return
+    mov si, terminal_close
+    mov cx, terminal_close_end - terminal_close
+    call terminal_write
+.return:
+    cld
+    int 20h
 
 draw_intro:
     mov di, next_frame
@@ -270,6 +299,8 @@ update_cloud_shape:
     mov byte [cloud_shift], 0
 .shifted:
     xor byte [cloud_variant], 1
+    cmp byte [lcd_enabled], 0
+    je .done
     cmp byte [cloud_variant], 0
     je .first
     bios_lcd_glyph CLOUD_GLYPH, cloud_glyph_b
@@ -280,6 +311,8 @@ update_cloud_shape:
     ret
 
 update_walker_shape:
+    cmp byte [lcd_enabled], 0
+    je .done
     mov al, [scene_tick]
     and al, 3
     jnz .done
@@ -304,6 +337,8 @@ fill_spaces:
 
 ; Write only LCD cells that changed. INT 60h/AH=04h preserves SI, DI and DX.
 present_frame:
+    cmp byte [lcd_enabled], 0
+    je terminal_present
     mov si, next_frame
     mov di, old_frame
     xor dx, dx
@@ -324,23 +359,106 @@ present_frame:
     inc dh
     cmp dh, BIOS_LCD_ROWS
     jb .cell
+    jmp terminal_present
+
+; Translate LCD CGRAM codes into printable ASCII. Compare translated rows,
+; so changes to cloud/walker glyph shapes also appear on the PC terminal.
+terminal_present:
+    cmp byte [uart_enabled], 0
+    je .done
+    xor di, di
+    mov byte [terminal_cursor + 2], '1'
+.row:
+    mov si, next_frame
+    add si, di
+    mov bx, terminal_row
+    mov cx, BIOS_LCD_COLUMNS
+.translate:
+    lodsb
+    cmp al, DARK_WALL
+    jne .glyph
+    mov al, '#'
+    jmp .store
+.glyph:
+    cmp al, 8
+    jae .store
+    push bx
+    xor bx, bx
+    mov bl, al
+    mov al, [ascii_glyphs + bx]
+    cmp bl, CLOUD_GLYPH
+    jne .walker
+    cmp byte [cloud_variant], 0
+    je .walker
+    mov al, '='
+.walker:
+    cmp bl, WALKER_GLYPH
+    jne .translated
+    test byte [scene_tick], 4
+    jz .translated
+    mov al, '!'
+.translated:
+    pop bx
+.store:
+    mov [bx], al
+    inc bx
+    loop .translate
+    push di
+    add di, terminal_old
+    mov si, terminal_row
+    mov cx, BIOS_LCD_COLUMNS
+    repe cmpsb
+    pop di
+    je .next_row
+    ; Publish the translated row only after its output has been accepted.
+    mov si, terminal_cursor
+    mov cx, 6
+    call terminal_write
+    mov si, terminal_row
+    mov cx, BIOS_LCD_COLUMNS
+    call terminal_write
+    cmp byte [link_failed], 0
+    jne .done
+    push di
+    add di, terminal_old
+    mov si, terminal_row
+    mov cx, BIOS_LCD_COLUMNS
+    rep movsb
+    pop di
+.next_row:
+    add di, BIOS_LCD_COLUMNS
+    inc byte [terminal_cursor + 2]
+    cmp di, SCREEN_CELLS
+    jb .row
+.done:
+    ret
+
+; DS:SI/CX block. Preserve registers; a stalled output queue ends the demo.
+terminal_write:
+    cmp byte [link_failed], 0
+    jne .done
+    push ax
+    push dx
+    bios_uart_write
+    jnc .ok
+    mov byte [link_failed], 1
+.ok:
+    pop dx
+    pop ax
+.done:
     ret
 
 delay_tick:
-    ; Poll between short delay slices: BIOS does not enable keyboard IRQs.
-    mov dx, 128
-.chunk:
-    mov cx, 256
-.wait:
-    loop .wait
+    cmp byte [link_failed], 0
+    jne .cancel
+    mov cx, 125
+    bios_delay
     bios_key_peek
-    jz .next
+    jz .done
     bios_key_read
     cmp al, 1Bh
     je .cancel
-.next:
-    dec dx
-    jnz .chunk
+.done:
     clc
     ret
 .cancel:
@@ -399,3 +517,16 @@ walker_glyph_a:
     db 00000b, 00100b, 00100b, 01110b, 00100b, 01010b, 10001b, 00000b
 walker_glyph_b:
     db 00000b, 00100b, 00100b, 01110b, 00100b, 01010b, 01010b, 00000b
+
+; Printable glyph equivalents, never transmit LCD control codes to a terminal.
+ascii_glyphs: db 'C', 'O', '*', '~', '^', 'H', 'o', 'i'
+terminal_open: db 27,'[0m',27,'[2J',27,'[H',27,'[36m',27,'[?25l'
+terminal_open_end:
+terminal_close: db 27,'[0m',27,'[?25h',13,10
+terminal_close_end:
+terminal_cursor: db 27,'[1;1H'
+lcd_enabled: db 0
+uart_enabled: db 0
+link_failed: db 0
+terminal_row: times BIOS_LCD_COLUMNS db ' '
+terminal_old: times SCREEN_CELLS db 0FFh

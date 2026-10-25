@@ -25,21 +25,38 @@ jmp start
 
 %include "lcd.inc"
 %include "memory.inc"
+%define BIOS_IRQ_UART_DRIVER 1
 %include "uart16550.inc"
 
 ; Initialize the selected board revision and enter the menu.
 start:
     cli
     cld
-    xor ax, ax
-    mov ss, ax
-    mov sp, SRAM_STACK_TOP
     mov ax, cs
     mov ds, ax
+    jmp ram_detect
 
-    call lcd_initialize
+%include "utils/ram_detect.inc"
+
+ram_detected:
+    ; Detection returns ES=bank base, BP=usable bank mask. First stack use.
+    mov ax, es
+    mov ss, ax
+    mov sp, SRAM_STACK_TOP
+    push bp
     call uart_initialize
+    call lcd_initialize
     call api_initialize
+    pop bp
+    push es
+    test bp, 1
+    jz .no_bda_pointer
+    xor ax, ax
+    mov es, ax
+    mov [es:BIOS_BANK_POINTER], ax
+    mov word [es:BIOS_BANK_SIGNATURE], 0B105h
+.no_bda_pointer:
+    pop es
     jmp monitor_ready
 
 %include "state.inc"
@@ -48,16 +65,19 @@ start:
 %include "uart/protocol.inc"
 %include "keyboard.inc"
 %include "uart/keyboard.inc"
-%include "programs.inc"
-%include "uart/programs.inc"
 %include "uart/memory_read.inc"
 %include "uart/memory_write.inc"
+%include "uart/ram.inc"
+%include "uart/irq_test.inc"
 %include "menu.inc"
-%include "boot.inc"
 %include "utils/memory_check.inc"
+%include "utils/pic_detect.inc"
+%include "utils/pit_detect.inc"
+%include "runtime.inc"
 %include "uart/info.inc"
 %include "info.inc"
 %include "api.inc"
+%include "pc.inc"
 %include "uart/flasher_mode.inc"
 
 ; 8088 reset vector at physical FFFF0h = EEPROM offset 7FF0h.

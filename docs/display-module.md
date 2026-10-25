@@ -37,6 +37,15 @@ jumpers. Before installing the module, bridge exactly one jumper.
 Do not bridge both jumpers. The selected window must not be assigned to any
 other installed module.
 
+## LCD access
+
+DS1 pin 5 (`R/W`) is connected to GND on the PCB. The display is write-only;
+software cannot read the busy flag, DDRAM or a hardware presence signature.
+The single BIOS always attempts LCD writes at `80h/81h` with fixed bounded
+delays, and UART remains usable when the module is absent. LCD support reported
+by the BIOS API does not assert physical presence. There is no LCD on/off/status
+command or separate display BIOS image.
+
 ## Interrupts
 
 The Display Module does not use an `EXP_IRQ*` line. Its `NMI` connector pin is
