@@ -1,4 +1,5 @@
 build/
+disks/
 flash-eeprom.sh
 **/__pycache__/
 **/*.pyc

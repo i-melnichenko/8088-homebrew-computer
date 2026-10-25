@@ -42,10 +42,12 @@ Host retries repeat the exact command, sequence and payload.
 | RAM_TEST | 0Ch | action:u8, optional confirmation | 31-byte snapshot |
 | TERMINAL_POLL | 0Dh | empty | 0, OS-running:u8, output:0..64 |
 | IRQ_TEST | 0Eh | empty | 0, result:u8, received:u16, target:u8 |
-| DISK_MOUNT | 0Fh | empty | 0 |
+| DISK_MOUNT | 0Fh | empty or writable:u8 (0/1) | 0 |
 | DISK_BOOT | 10h | empty | 0, then boot handoff |
 | DISK_POLL | 11h | empty | 0, pending:u8, id:u16, LBA:u16, received:u16 |
 | DISK_DATA | 12h | id:u16, offset:u16, error:u8, data:0..120 | 0 |
+| DISK_WRITE_DATA | 13h | id:u16, offset:u16 | 0, id:u16, offset:u16, data:1..120 |
+| DISK_WRITE_ACK | 14h | id:u16, BIOS-status:u8 | 0 |
 
 No BIOS application registry or application transfer/execution commands exist.
 Applications come from the OS filesystem. Remaining command IDs are unassigned.
@@ -157,16 +159,18 @@ vector afterward. The host allows 15 seconds for this synchronous diagnostic.
 Normal IRQ0 runs at approximately 18.2065 Hz and invokes INT 1Ch; UART IRQ4 uses
 vector 0Ch. No protocol commands execute in an ISR.
 
-## Read-only UART floppy
+## UART floppy
 
 Geometry is 2880 × 512-byte sectors, 80 cylinders, 2 heads, 18 sectors/track.
-DISK_MOUNT requires RAM0 and the idle monitor. DISK_BOOT additionally requires
+DISK_MOUNT requires RAM0 and the idle monitor. Empty payload or a zero byte
+mounts read only; byte 1 enables INT 13h writes. Other payloads are invalid. DISK_BOOT additionally requires
 terminal mode 2 and a verified timer. It acknowledges before reading sector 0,
 reserves the upper 32 KiB of contiguous RAM, loads 0000:7C00, checks AA55h and
 enters with DL=0. Invalid boot sectors print BOOT FAILED and await Reset.
 
 DISK_POLL is side-effect free. A pending request identifies one sector, LBA
-0..2879. Host sends ordered chunks at the reported `received` offset, no more
+0..2879. `pending=0` means idle, 1 means read, and 2 means write.
+For a read, host sends ordered chunks at the reported `received` offset, no more
 than 120 bytes each. Offset plus length cannot exceed 512. Zero-length success,
 wrong IDs, gaps and mismatched duplicate data return 18 without changing data.
 After 512 bytes BIOS completes the sector and may immediately request the next.
@@ -178,10 +182,30 @@ while the current sector remains pending. Unsolicited data is rejected. Boot
 requests with the original explicit boot sequence are acknowledged while the OS
 runs; other boot requests return 11. Mount/Reset clear transport retry state.
 
+For a write, BIOS first copies the source sector into its reserved buffer and
+reports `pending=2`, `received=0`. DISK_WRITE_DATA fetches the pending sector
+without modifying it: the response contains exactly min(120,512-offset) bytes.
+The ID must match; offsets are 0..511. Host validates every returned ID/offset,
+collects 512 bytes, writes the sector at LBA*512, synchronizes storage and
+verifies readback before sending DISK_WRITE_ACK with status 0. The in-memory
+read snapshot is updated only after successful persistence and verification.
+A read-only host ACKs with status 03h; a write/readback failure uses 20h. A
+nonzero status completes the request with CF set and that INT 13h AH status.
+An exact final ACK retry succeeds even after the guest starts the next sector;
+changed/stale ACKs and fetches without a matching pending write return 18.
+Fetching data and retransmitting ACKs never repeat the host file write.
+
 Disk waits time out after about ten seconds, with a CPU watchdog if time stops.
-Detach aborts a pending read. Reconnect with the same image and omit mount/boot
+Detach aborts a pending transfer. Reconnect with the same image and omit mount/boot
 while the OS runs. Terminal, keys and disk must share one host connection. Writes
-through INT 13h return write-protected error; boardctl never modifies the image.
+through INT 13h require a writable mount. boardctl `terminal --disk IMAGE`
+requests writable mode by default (DISK_MOUNT payload 01h). `--disk-readonly`
+requests read-only mode (empty payload) and never modifies the image. A writable
+open or lock failure is an error, without automatic fallback. Mount mode is
+fixed until Reset. Reconnect with the same image and mode, omitting --boot.
+Writable sessions hold an exclusive advisory lock on a regular 1.44-MiB host
+file and persist each sector before ACK; an interrupted multi-sector FAT update
+is not a transactional operation and can leave an incomplete filesystem change.
 
 ## EEPROM upgrade service
 

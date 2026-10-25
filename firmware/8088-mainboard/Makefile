@@ -57,17 +57,35 @@ clean:
 .PHONY: os
 os: $(BUILD_DIR)/home8088.img
 
-$(BUILD_DIR)/os-boot.bin: os/boot.asm | $(BUILD_DIR)
+$(BUILD_DIR)/os-boot.bin: os/home8088/boot.asm | $(BUILD_DIR)
 	$(NASM) -f bin -o $@ $<
 
-$(BUILD_DIR)/os-kernel.bin: os/kernel.asm | $(BUILD_DIR)
+$(BUILD_DIR)/os-kernel.bin: os/home8088/kernel.asm | $(BUILD_DIR)
 	$(NASM) -f bin -l $(BUILD_DIR)/os-kernel.lst -o $@ $<
 
-$(BUILD_DIR)/%.com: programs/%/main.asm lib/bios_api.inc | $(BUILD_DIR)
+$(BUILD_DIR)/%.com: os/home8088/programs/%/main.asm lib/bios_api.inc | $(BUILD_DIR)
 	$(NASM) -f bin -I lib/ -o $@ $<
 
 $(BUILD_DIR)/home8088.img: $(BUILD_DIR)/os-boot.bin $(BUILD_DIR)/os-kernel.bin $(BUILD_DIR)/city.com $(BUILD_DIR)/reactor.com $(BUILD_DIR)/terminal.com scripts/make-os-image.py
 	python3 scripts/make-os-image.py $@ $(filter %.bin %.com,$^)
 
-$(BUILD_DIR)/city.com: programs/citylights/main.asm lib/bios_api.inc | $(BUILD_DIR)
+$(BUILD_DIR)/city.com: os/home8088/programs/citylights/main.asm lib/bios_api.inc | $(BUILD_DIR)
 	$(NASM) -f bin -I lib/ -o $@ $<
+
+# Explicit opt-in: fetch pinned Microsoft files, or supply a local checkout.
+.PHONY: msdos
+msdos: $(BUILD_DIR)/msdos-boot.bin $(BUILD_DIR)/msdos-io.bin $(BUILD_DIR)/doshello.com
+	python3 scripts/make-msdos-image.py $(if $(MSDOS_SOURCE_DIR),--source "$(MSDOS_SOURCE_DIR)",)
+
+.PHONY: msdos-zork
+msdos-zork: $(BUILD_DIR)/msdos-boot.bin $(BUILD_DIR)/msdos-io.bin $(BUILD_DIR)/doshello.com
+	python3 scripts/make-msdos-image.py --zork $(if $(MSDOS_SOURCE_DIR),--source "$(MSDOS_SOURCE_DIR)",)
+
+$(BUILD_DIR)/msdos-boot.bin: os/msdos/boot.asm | $(BUILD_DIR)
+	$(NASM) -f bin -o $@ $<
+
+$(BUILD_DIR)/msdos-io.bin: os/msdos/io.asm | $(BUILD_DIR)
+	$(NASM) -f bin -l $(BUILD_DIR)/msdos-io.lst -o $@ $<
+
+$(BUILD_DIR)/doshello.com: os/msdos/programs/hello/main.asm | $(BUILD_DIR)
+	$(NASM) -f bin -o $@ $<

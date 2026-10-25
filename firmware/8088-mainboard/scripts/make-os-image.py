@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-def build(boot, kernel, files):
+def build(boot, kernel, files, *, max_file_size=0x7b00):
     if len(boot) != 512 or boot[510:] != b'\x55\xaa':
         raise ValueError('boot sector must be 512 bytes with signature 55 AA')
     if not 0 < len(kernel) <= 8192:
@@ -29,8 +29,8 @@ def build(boot, kernel, files):
         if packed in names:
             raise ValueError(f'duplicate filename: {name}')
         names.add(packed)
-        if not 0 < len(data) <= 0x7b00:
-            raise ValueError(f'{name}: COM size must be 1..31488 bytes')
+        if not 0 < len(data) <= max_file_size:
+            raise ValueError(f'{name}: file size must be 1..{max_file_size} bytes')
         count = (len(data)+511)//512
         if cluster+count > 2833:
             raise ValueError('disk is full')

@@ -14,24 +14,32 @@ and software capabilities.
 ## Firmware and host tools
 
 The repository includes a [32 KiB ROM BIOS](firmware/8088-mainboard/README.md),
-[HOME8088 OS](firmware/8088-mainboard/os/README.md) and
-[boardctl](tools/boardctl/README.md). BIOS performs POST, offers a 20×4 LCD menu
-for boot/diagnostics/info, and exposes PC-style hardware services. The OS loads
-COM applications from a read-only FAT12 floppy served by boardctl over UART.
+[boardctl](tools/boardctl/README.md), and two supported operating systems:
 
-From the repository root:
+| Operating system | Build from the repository root | Disk image |
+| --- | --- | --- |
+| [HOME8088 OS](firmware/8088-mainboard/os/home8088/README.md) | `make -C firmware/8088-mainboard os` | `home8088.img` |
+| [Microsoft MS-DOS 2.0](firmware/8088-mainboard/os/msdos/README.md) | `make -C firmware/8088-mainboard msdos` | `msdos20.img` |
+
+BIOS performs POST, offers a 20×4 LCD menu for boot/diagnostics/info, and exposes
+PC-style hardware services. Both operating systems boot from FAT12
+floppy images served by boardctl over UART. Images are writable by default.
+Generated base images live in `firmware/8088-mainboard/build/`; keep persistent
+DOS files and saves in working copies under `firmware/8088-mainboard/disks/`.
+
+For example, build and boot HOME8088 OS from the repository root:
 
 ```sh
-make -C firmware/8088-mainboard bios os BIOS_VERSION=dev-os2
+make -C firmware/8088-mainboard bios os BIOS_VERSION=dev-disk
 go -C tools/boardctl build -o boardctl ./cmd
 tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX info
 tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX terminal \
   --disk firmware/8088-mainboard/build/home8088.img --boot
 ```
 
-Install the built BIOS before booting the OS. Applications run from the OS with
-RUN CITY, RUN REACTOR or RUN TERMINAL. BIOS/boardctl do not manage application
-uploads or resident slots. Normal host operations require
+Install the built BIOS before booting the OS. HOME8088 applications run with
+RUN CITY, RUN REACTOR or RUN TERMINAL; MS-DOS starts DOS programs by filename.
+BIOS/boardctl do not manage application uploads or resident slots. Normal host operations require
 [UART protocol 2.0](docs/uart-protocol.md); EEPROM operations negotiate the
 installed upgrade transport separately so an older BIOS can still be updated.
 The independent updater lives in `firmware/8088-mainboard/bios/programs/flasher`.
@@ -40,8 +48,26 @@ Rev. 2 uses on-board UART at 3F8..3FF, 9600 8N1, optional PIC/PIT, and an option
 20×4 LCD with JP1 bridged (80/81 ports). POST detects installed SRAM chips across
 00000..9FFFF; the monitor/updater need one working chip anywhere. OS boot requires
 RAM0 and a verified timer, reserving the upper 32 KiB of contiguous RAM for BIOS.
-The PC timer runs at about 18.2065 Hz. Stock DOS compatibility remains in progress;
-the native OS exercises boot sectors, INT 13h, keyboard, console and PC time.
+The PC timer runs at about 18.2065 Hz. Both operating systems use BIOS disk,
+keyboard, console and time services.
+
+Microsoft MS-DOS uses the original, unmodified Microsoft 2.00 kernel and COMMAND
+2.02 with the board's OEM I/O layer. The image includes DEBUG and a DOS example;
+`make -C firmware/8088-mainboard msdos-zork` adds Zork I in `msdos20-zork.img`.
+Prepare a working copy after building DOS, then boot it through the same BIOS
+and boardctl (from the repository root):
+
+```sh
+mkdir -p firmware/8088-mainboard/disks
+cp -n firmware/8088-mainboard/build/msdos20.img firmware/8088-mainboard/disks/msdos20.img
+tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX terminal \
+  --disk firmware/8088-mainboard/disks/msdos20.img --boot
+```
+
+The supported DOS configuration uses the UART console and writable disk images.
+Add `--disk-readonly` to protect an image from guest writes.
+See the [DOS guide](firmware/8088-mainboard/os/msdos/README.md) for tested programs
+and current hardware and storage limits.
 
 ## Architecture
 
@@ -89,7 +115,7 @@ use a MAX232-compatible level converter before connecting an RS-232 port.
 The 8259A PIC operates as a single 8086/8088-mode master and drives the
 processor `INTR` input. The 8254 PIT provides the system tick: its channel 0
 receives a 1.1931817 MHz clock from a 74LS74 divider and, when programmed with
-a divisor of 65,536 in mode 3, produces an 18.2065 Hz interrupt on `IR0`.
+a divisor of 65,536 in mode 2, produces an 18.2065 Hz interrupt on `IR0`.
 
 | PIC input | PCB connection |
 | --- | --- |

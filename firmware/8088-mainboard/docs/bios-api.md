@@ -30,7 +30,7 @@ BDA signature probe selects the monitor-only fallback when RAM0 is absent.
 
 The IVT and standard BDA remain at physical zero after relocation. COM memory,
 PSP, entry registers, stack and INT 20h termination belong to the OS; see the
-[OS contract](../os/README.md). No BIOS routine implements DOS INT 21h.
+[OS contract](../os/home8088/README.md). No BIOS routine implements DOS INT 21h.
 
 Unless specified, software INT services preserve AX/BX/CX/DX/SI/DI/BP/DS/ES
 and caller flags. They use IRET, clear DF internally and may enable verified IRQs
@@ -47,7 +47,7 @@ isolation. Keep IF enabled for background timer/UART service.
 | 10h | OS-mode UART console, below |
 | 11h | Equipment word from BDA; one floppy after boot |
 | 12h | AX = conventional RAM in KiB |
-| 13h | Read-only virtual floppy, below |
+| 13h | Virtual floppy with mount-controlled sector writes, below |
 | 14h | UART/terminal, below |
 | 16h | Keyboard queue, below |
 | 19h | Boot mounted floppy at 0000:7C00; does not return |
@@ -83,9 +83,11 @@ LCD is a separate board display and shows OS/disk status by default.
 
 Before OS boot, the BIOS monitor's LCD text backend is 20×4 custom mode 7Fh.
 Applications use INT 60h LCD functions independently of the UART console.
-This implementation is not yet a claim that stock DOS boots unmodified.
+The supported [Microsoft MS-DOS 2.0 port](../os/msdos/README.md) uses this console
+through the board's OEM I/O layer. Its Microsoft kernel and COMMAND.COM are
+unmodified; programs requiring additional video services need further support.
 
-### INT 13h — read-only floppy
+### INT 13h — UART floppy
 
 Drive DL=0, 80 cylinders, 2 heads, 18 sectors per track, 512-byte sectors.
 
@@ -94,7 +96,7 @@ Drive DL=0, 80 cylinders, 2 heads, 18 sectors per track, 512-byte sectors.
 | 00h | DL=0 | Reset/status success if mounted |
 | 01h | DL=0 | Last disk status |
 | 02h | AL=1..18, CH=cylinder, CL=sector, DH=head, ES:BX=buffer | Read sectors; AL=count on success |
-| 03h | write | CF=1, AH=03h (write protected) |
+| 03h | same CHS/count/buffer as read | Write sectors on a writable mount; otherwise CF=1, AH=03h |
 | 08h | DL=0 | CH=79, CL=18, DH=1, DL=1, BL=4 |
 | 15h | DL=0 | AH=1 floppy type |
 

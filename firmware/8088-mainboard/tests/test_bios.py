@@ -47,6 +47,8 @@ DISK_MOUNT = 0x0f
 DISK_BOOT = 0x10
 DISK_POLL = 0x11
 DISK_DATA = 0x12
+DISK_WRITE_DATA = 0x13
+DISK_WRITE_ACK = 0x14
 
 
 def assemble(source):

@@ -1,6 +1,6 @@
 # REACTOR
 
-Native COM application for [HOME8088 OS](../../os/README.md), using BIOS services.
+Native COM application for [HOME8088 OS](../../README.md), using BIOS services.
 Build the FAT12 image with `make os` from `firmware/8088-mainboard`.
 
 After booting the image through `boardctl terminal --disk IMAGE --boot`, run:

@@ -120,7 +120,7 @@ func startKeyboardPTY(t *testing.T, args ...string) (*serialPort, *serialPort, <
 	return board, terminal, done
 }
 
-func waitPTYText(t *testing.T, port *serialPort, want string) {
+func waitPTYText(t *testing.T, port *serialPort, want string) string {
 	t.Helper()
 	var output []byte
 	deadline := time.Now().Add(4 * time.Second)
@@ -132,10 +132,11 @@ func waitPTYText(t *testing.T, port *serialPort, want string) {
 		}
 		output = append(output, buf[:n]...)
 		if bytes.Contains(output, []byte(want)) {
-			return
+			return string(output)
 		}
 	}
 	t.Fatalf("did not see %q; output=%q", want, output)
+	return string(output)
 }
 
 func readPTYFrame(t *testing.T, port *serialPort) protocol.Frame {
@@ -256,9 +257,13 @@ func ptySettings(t *testing.T, port *serialPort) syscall.Termios {
 func TestTerminalPTYBootDiskAndReconnect(t *testing.T) {
 	image := bytes.Repeat([]byte{0xa5}, diskImageSize)
 	path := writeTestFile(t, "disk.img", image)
-	for _, reconnect := range []bool{false, true} {
-		t.Run(fmt.Sprint(reconnect), func(t *testing.T) {
+	for _, config := range []struct{ reconnect, writable bool }{{false, false}, {true, false}, {false, true}, {true, true}} {
+		reconnect, writable := config.reconnect, config.writable
+		t.Run(fmt.Sprint(config), func(t *testing.T) {
 			args := []string{"terminal", "--disk", path}
+			if !writable {
+				args = append(args, "--disk-readonly")
+			}
 			if !reconnect {
 				args = append(args, "--boot")
 			}
@@ -290,6 +295,14 @@ func TestTerminalPTYBootDiskAndReconnect(t *testing.T) {
 						running = 1
 					}
 					data = []byte{0, running}
+				case protocol.DiskMount:
+					var expected []byte
+					if writable {
+						expected = []byte{1}
+					}
+					if !bytes.Equal(request.Data, expected) {
+						t.Fatalf("mount payload: %x", request.Data)
+					}
 				case protocol.DiskPoll:
 					data = diskPoll(1, 7, 0)
 				}
@@ -309,7 +322,14 @@ func TestTerminalPTYBootDiskAndReconnect(t *testing.T) {
 				t.Fatalf("expected terminal poll, got %x", request.Command)
 			}
 			respond(request, append([]byte{0, 1}, []byte("HOME8088 OS READY")...))
-			waitPTYText(t, tty, "HOME8088 OS READY")
+			output := waitPTYText(t, tty, "HOME8088 OS READY")
+			expectedMode := "Floppy A: read-only."
+			if writable {
+				expectedMode = "Floppy A: read/write"
+			}
+			if !strings.Contains(output, expectedMode) {
+				t.Fatalf("missing disk mode: %q", output)
+			}
 			if _, err := tty.Write([]byte{3}); err != nil {
 				t.Fatal(err)
 			}
@@ -329,6 +349,13 @@ func TestTerminalPTYBootDiskAndReconnect(t *testing.T) {
 				}
 			}
 			waitKeyboardExit(t, done, tty)
+			if writable {
+				f, err := openWritableDisk(path, make([]byte, diskImageSize))
+				if err != nil {
+					t.Fatalf("writer lock leaked on detach: %v", err)
+				}
+				f.Close()
+			}
 		})
 	}
 }

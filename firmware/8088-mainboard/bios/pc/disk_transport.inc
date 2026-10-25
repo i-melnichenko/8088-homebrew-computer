@@ -1,6 +1,13 @@
 monitor_disk_mount:
+    xor bx, bx
     cmp word [es:DECODE_BUFFER + 3], 0
+    je .validated
+    cmp word [es:DECODE_BUFFER + 3], 1
     jne keyboard_request_error
+    mov bl, [es:DECODE_BUFFER + 5]
+    cmp bl, 1
+    ja keyboard_request_error
+.validated:
     cmp byte [es:OS_RUNNING], 0
     jne .busy
     cmp byte [es:RAM_TEST_STATE], 1
@@ -10,6 +17,7 @@ monitor_disk_mount:
     mov es, ax
     cmp word [es:BIOS_BANK_SIGNATURE], 0B105h
     jne .bad
+    mov [es:PC_WRITABLE], bl
     mov byte [es:PC_CACHE_VALID], 0
     mov byte [es:PC_MOUNTED], 1
     mov byte [es:PC_PENDING], 0
@@ -185,3 +193,95 @@ monitor_disk_boot_retry:
     mov al, 11
     jmp monitor_reply
 
+
+; Side-effect-free fetch of a pending write's immutable sector buffer.
+; Request: id:u16, offset:u16. Reply: 0, id:u16, offset:u16, <=120 bytes.
+monitor_disk_write_data:
+    cmp word [es:DECODE_BUFFER + 3], 4
+    jne keyboard_request_error
+    mov bx, [es:DECODE_BUFFER + 5]
+    mov dx, [es:DECODE_BUFFER + 7]
+    cmp dx, 512
+    jae .invalid
+    push es
+    push ds
+    LOAD_BANK ax
+    mov es, ax
+    cmp byte [es:PC_PENDING], 2
+    jne .bad
+    cmp bx, [es:PC_REQUEST]
+    jne .bad
+    mov byte [es:BIOS_STATE_BASE + RX_BUFFER + 5], 0
+    mov [es:BIOS_STATE_BASE + RX_BUFFER + 6], bx
+    mov [es:BIOS_STATE_BASE + RX_BUFFER + 8], dx
+    mov cx, 512
+    sub cx, dx
+    cmp cx, 120
+    jbe .length
+    mov cx, 120
+.length:
+    push cx
+    mov si, PC_SECTOR
+    add si, dx
+    mov di, BIOS_STATE_BASE + RX_BUFFER + 10
+    push es
+    pop ds
+    rep movsb
+    pop cx
+    add cx, 5
+    pop ds
+    pop es
+    jmp monitor_reply_data
+.bad:
+    pop ds
+    pop es
+.invalid:
+    mov al, 18
+    jmp monitor_reply
+
+; Host reports BIOS status (0=committed). Exact ACK retries are accepted even
+; after the guest starts its next request. Cache length 3 distinguishes ACKs
+; from DISK_DATA payloads, whose minimum length is 5.
+monitor_disk_write_ack:
+    cmp word [es:DECODE_BUFFER + 3], 3
+    jne keyboard_request_error
+    push ds
+    push es
+    push es
+    pop ds
+    LOAD_BANK ax
+    mov es, ax
+    cmp byte [es:PC_CACHE_VALID], 1
+    jne .active
+    cmp word [es:PC_CACHE_LENGTH], 3
+    jne .active
+    mov si, DECODE_BUFFER + 5
+    mov di, PC_CACHE_DATA
+    mov cx, 3
+    repe cmpsb
+    je .ok
+.active:
+    cmp byte [es:PC_PENDING], 2
+    jne .bad
+    mov ax, [ds:DECODE_BUFFER + 5]
+    cmp ax, [es:PC_REQUEST]
+    jne .bad
+    mov al, [ds:DECODE_BUFFER + 7]
+    mov [es:PC_ERROR], al
+    mov byte [es:PC_PENDING], 0
+    mov byte [es:PC_CACHE_VALID], 1
+    mov word [es:PC_CACHE_LENGTH], 3
+    mov si, DECODE_BUFFER + 5
+    mov di, PC_CACHE_DATA
+    mov cx, 3
+    rep movsb
+.ok:
+    pop es
+    pop ds
+    xor al, al
+    jmp monitor_reply
+.bad:
+    pop es
+    pop ds
+    mov al, 18
+    jmp monitor_reply

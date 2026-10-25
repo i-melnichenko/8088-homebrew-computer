@@ -1,4 +1,4 @@
-; Read-only floppy INT 13h subset: reset, status, CHS read, parameters, type.
+; Floppy INT 13h subset: reset, status, CHS read/write, parameters, type.
 pc_disk:
     API_ENTER
     test dl, dl
@@ -10,7 +10,7 @@ pc_disk:
     cmp ah, 2
     je .read
     cmp ah, 3
-    je .protected
+    je .write
     cmp ah, 8
     je .parameters
     cmp ah, 15h
@@ -45,6 +45,11 @@ pc_disk:
 .not_ready:
     mov ah, 80h
     jmp .error
+.write:
+    RUNTIME_ENTER
+    cmp byte [es:PC_WRITABLE], 1
+    RUNTIME_LEAVE
+    jne .protected
 .read:
     call pc_is_booted
     jnc .not_ready
@@ -128,8 +133,10 @@ pc_disk:
     pop bx
 .next:
     mov ax, di
+    cmp byte [ss:bp - 1], 3
+    je .write_sector
     call pc_read_sector
-    jc .not_ready
+    jc .transfer_error
     push ds
     push es
     push si
@@ -147,6 +154,29 @@ pc_disk:
     pop si
     pop es
     pop ds
+    jmp .sector_done
+.write_sector:
+    push ds
+    push es
+    push si
+    push di
+    push cx
+    mov ds, [ss:bp - 16]
+    LOAD_BANK ax
+    mov es, ax
+    mov si, bx
+    mov di, PC_SECTOR
+    mov cx, 256
+    rep movsw
+    pop cx
+    pop di
+    pop si
+    pop es
+    pop ds
+    mov ax, di
+    call pc_write_sector
+    jc .transfer_error
+.sector_done:
     add bx, 512
     inc di
     dec si
@@ -154,6 +184,11 @@ pc_disk:
     mov al, [ss:bp - 2]
     xor ah, ah
     jmp .success
+.transfer_error:
+    RUNTIME_ENTER
+    mov ah, [es:PC_ERROR]
+    RUNTIME_LEAVE
+    jmp .error
 .bad_dest:
     pop bx
 .dma:
@@ -179,6 +214,14 @@ pc_disk:
 ; AX=LBA. Host supplies chunks while normal keyboard/terminal frames continue.
 pc_read_sector:
     push bx
+    mov bl, 1
+    jmp pc_transfer_sector
+
+; AX=LBA, PC_SECTOR holds source bytes. ACK only after the host commits them.
+pc_write_sector:
+    push bx
+    mov bl, 2
+pc_transfer_sector:
     push cx
     push dx
     push si
@@ -189,11 +232,16 @@ pc_read_sector:
     pop ax
     cmp byte [es:PC_MOUNTED], 1
     jne .error
+    cmp bl, 2
+    jne .start
+    cmp byte [es:PC_WRITABLE], 1
+    jne .protected
+.start:
     mov [es:PC_LBA], ax
     inc word [es:PC_REQUEST]
     mov word [es:PC_RECEIVED], 0
     mov byte [es:PC_ERROR], 0
-    mov byte [es:PC_PENDING], 1
+    mov [es:PC_PENDING], bl
     mov si, [es:RT_TICKS]
     mov dx, 32
     xor bx, bx
@@ -212,6 +260,10 @@ pc_read_sector:
     jnz .wait
     dec dx
     jnz .wait
+    jmp .error
+.protected:
+    mov byte [es:PC_ERROR], 3
+    jmp .complete
 .error:
     mov byte [es:PC_PENDING], 0
     mov byte [es:PC_ERROR], 80h

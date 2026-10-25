@@ -247,30 +247,49 @@ func interactive(c *client.Client, terminalMode bool, startup terminalOptions) e
 	}()
 	defer func() { close(stop); <-done }()
 	if startup.diskImage != nil && !running {
-		if err := checkStatusReply(c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.DiskMount}, 3)); err != nil {
+		var mount []byte
+		if !startup.diskReadonly {
+			mount = []byte{1}
+		}
+		if err := checkStatusReply(c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.DiskMount, Data: mount}, 3)); err != nil {
 			return fmt.Errorf("mount disk: %w", err)
 		}
 		if startup.bootDisk {
 			if err := checkStatusReply(c.TransactAttemptsContext(ctx, protocol.Frame{Command: protocol.DiskBoot}, 3)); err != nil {
 				return fmt.Errorf("boot disk: %w", err)
 			}
-			fmt.Fprint(os.Stderr, "Booting read-only floppy A:.\r\n")
+			if !startup.diskReadonly {
+				fmt.Fprint(os.Stderr, "Booting writable floppy A:.\r\n")
+			} else {
+				fmt.Fprint(os.Stderr, "Booting read-only floppy A:.\r\n")
+			}
+		}
+	}
+	if startup.diskImage != nil {
+		if startup.diskReadonly {
+			fmt.Fprint(os.Stderr, "Floppy A: read-only.\r\n")
+		} else {
+			fmt.Fprint(os.Stderr, "Floppy A: read/write (changes saved to image).\r\n")
 		}
 	}
 	if terminalMode {
 		fmt.Fprint(os.Stderr, "Terminal connected. Ctrl-C: quit.\r\n")
 		defer fmt.Fprint(os.Stdout, "\x1b[0m\x1b[?25h\r\n")
-		return interactiveLoop(ctx, c, inputs, done, true, os.Stdout, startup.diskImage)
+		disk := &diskService{image: startup.diskImage}
+		if startup.diskFile != nil {
+			disk.writer = startup.diskFile
+		}
+		return interactiveLoop(ctx, c, inputs, done, true, os.Stdout, disk)
 	}
 	fmt.Fprint(os.Stderr, "Keyboard connected; use the board LCD. Ctrl-C: quit.\r\n")
 	return keyboardLoop(ctx, c, inputs, done)
 }
 
 func keyboardLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}) error {
-	return interactiveLoop(ctx, c, inputs, done, false, io.Discard)
+	return interactiveLoop(ctx, c, inputs, done, false, io.Discard, nil)
 }
 
-func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}, terminalMode bool, out io.Writer, disks ...[]byte) error {
+func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}, terminalMode bool, out io.Writer, disk *diskService) error {
 	var ticks <-chan time.Time
 	if terminalMode {
 		ticker := time.NewTicker(50 * time.Millisecond)
@@ -287,8 +306,8 @@ func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan termin
 			}
 			return errors.New("terminal input stopped")
 		case <-ticks:
-			if len(disks) > 0 && disks[0] != nil {
-				if err := serviceDisk(ctx, c, disks[0]); err != nil {
+			if disk != nil && disk.image != nil {
+				if err := serviceDisk(ctx, c, disk.image, disk.writer); err != nil {
 					if ctx.Err() != nil {
 						return nil
 					}

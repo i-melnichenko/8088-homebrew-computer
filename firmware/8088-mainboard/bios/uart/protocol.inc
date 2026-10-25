@@ -60,6 +60,10 @@ monitor_dispatch:
     je monitor_disk_poll
     cmp al, PROTO_DISK_DATA
     je monitor_disk_data
+    cmp al, PROTO_DISK_WRITE_DATA
+    je monitor_disk_write_data
+    cmp al, PROTO_DISK_WRITE_ACK
+    je monitor_disk_write_ack
     mov al, 1
     jmp monitor_reply
 

@@ -112,6 +112,10 @@ host_poll:
     je .disk_poll
     cmp al, PROTO_DISK_DATA
     je .disk_data
+    cmp al, PROTO_DISK_WRITE_DATA
+    je .disk_write_data
+    cmp al, PROTO_DISK_WRITE_ACK
+    je .disk_write_ack
     cmp al, PROTO_BIOS_WRITE
     je .unsupported
     mov al, 11                      ; operating system owns the board
@@ -122,6 +126,12 @@ host_poll:
     jmp .done
 .disk_poll:
     call monitor_disk_poll
+    jmp .done
+.disk_write_data:
+    call monitor_disk_write_data
+    jmp .done
+.disk_write_ack:
+    call monitor_disk_write_ack
     jmp .done
 .disk_data:
     call monitor_disk_data

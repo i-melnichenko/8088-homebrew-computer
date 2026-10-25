@@ -22,16 +22,20 @@ def com(source):
 
 
 class Session:
-    def __init__(self, image=None, mask=3):
+    def __init__(self, image=None, mask=3, writable=False):
         self.board = fw.Board(ram_mask=mask, pic=True, pit='running', irq_delivery='working')
         self.board.absent_accesses.clear()
         self.image = image or fw.BIOS.with_name('home8088.img').read_bytes()
+        self.writable = writable
+        self.write_error = 0
+        if writable:
+            self.image = bytearray(self.image)
         self.output = bytearray()
         self.sectors = []
 
     def boot(self, menu=False):
         assert self.board.transact(fw.KEYBOARD_MODE,b'\2') == b'\0\0'
-        assert self.board.transact(fw.DISK_MOUNT) == b'\0'
+        assert self.board.transact(fw.DISK_MOUNT, b'\1' if self.writable else b'') == b'\0'
         if menu:
             assert self.board.transact(fw.KEYBOARD_EVENT,b'\r\x1c') == b'\0\1'
         else:
@@ -41,7 +45,30 @@ class Session:
         b = self.board
         poll = b.transact(fw.DISK_POLL)
         assert len(poll) == 8 and poll[0] == 0
-        if poll[1]:
+        if poll[1] == 2:
+            assert self.writable
+            ident,lba,offset = struct.unpack('<3H',poll[2:])
+            assert offset == 0 and lba < 2880
+            if duplicate:
+                assert b.transact(fw.DISK_WRITE_ACK,struct.pack('<HB',ident^65535,0)) == b'\x12'
+                assert b.transact(fw.DISK_WRITE_DATA,struct.pack('<HH',ident,512)) == b'\x12'
+                assert b.transact(fw.DISK_DATA,struct.pack('<HHB',ident,0,0)+b'X') == b'\x12'
+            data = bytearray()
+            for pos in range(0,512,120):
+                request = struct.pack('<HH',ident,pos)
+                reply = b.transact(fw.DISK_WRITE_DATA,request)
+                assert reply[:5] == b'\0'+request
+                assert len(reply) == 5+min(120,512-pos)
+                if duplicate:
+                    assert b.transact(fw.DISK_WRITE_DATA,request) == reply
+                data += reply[5:]
+            if not self.write_error:
+                self.image[lba*512:(lba+1)*512] = data
+            ack = struct.pack('<HB',ident,self.write_error)
+            assert b.transact(fw.DISK_WRITE_ACK,ack) == b'\0'
+            if duplicate:
+                assert b.transact(fw.DISK_WRITE_ACK,ack) == b'\0'
+        elif poll[1]:
             ident,lba,offset = struct.unpack('<3H',poll[2:])
             self.sectors.append(lba)
             assert lba < 2880 and offset < 512
@@ -281,3 +308,116 @@ class PCTimeTest(unittest.TestCase):
         self.assertGreater(board.cpu.mem_read(0x470,1)[0],0)
         self.assertLess(struct.unpack('<I',board.cpu.mem_read(0x46c,4))[0],10)
         self.assertIn(0x1c,board.interrupts)
+
+class PCDiskWriteTest(unittest.TestCase):
+    def test_write_readback_bounds_and_duplicate_transfers(self):
+        program=com('''
+            push ds
+            pop es
+            mov bx, buffer
+            mov cx, 4f12h
+            mov dx, 0100h
+            mov ax, 0301h
+            int 13h
+            jc failed
+            mov bx, readback
+            mov ax, 0201h
+            int 13h
+            jc failed
+            mov si, buffer
+            mov di, readback
+            mov cx, 256
+            repe cmpsw
+            jne failed
+            mov ax, 0302h
+            mov cx, 4f12h
+            int 13h
+            jnc failed
+            cmp ah, 4
+            jne failed
+            mov ax, 0301h
+            mov cx, 1
+            xor dx, dx
+            mov bx, 0ff00h
+            int 13h
+            jnc failed
+            cmp ah, 9
+            jne failed
+            mov ax, 0301h
+            xor bx, bx
+            mov es, bx
+            int 13h
+            jnc failed
+            cmp ah, 9
+            jne failed
+            mov si, passed
+            jmp print
+        failed:
+            mov si, error
+        print:
+            lodsb
+            test al, al
+            jz done
+            mov ah, 0eh
+            int 10h
+            jmp print
+        done:
+            ret
+        passed: db 'WRITE PASS',13,10,0
+        error: db 'WRITE FAIL',13,10,0
+        buffer: times 512 db 5ah
+        readback: times 512 db 0
+        ''')
+        image=image_builder.build(fw.BIOS.with_name('os-boot.bin').read_bytes(),
+            fw.BIOS.with_name('os-kernel.bin').read_bytes(),[('WRITE.COM',program)])
+        class DuplicateSession(Session):
+            def step(self,duplicate=True):
+                return super().step(duplicate=True)
+        session=DuplicateSession(image,writable=True)
+        session.boot();session.until()
+        self.assertIn(b'WRITE PASS',session.command('RUN WRITE'))
+        self.assertEqual(session.image[2879*512:],b'Z'*512)
+        self.assertFalse(session.board.absent_accesses)
+        self.assertEqual(session.board.transact(fw.DISK_WRITE_ACK,b'\xff\xff\0'),b'\x12')
+        self.assertEqual(session.board.transact(fw.DISK_WRITE_DATA,b'\xff\xff\0\0'),b'\x12')
+
+    def test_host_write_failure_propagates_without_publishing_sector(self):
+        program=com('''
+            push ds
+            pop es
+            mov bx, buffer
+            mov cx, 4f12h
+            mov dx, 0100h
+            mov ax, 0301h
+            int 13h
+            jnc failed
+            cmp ah, 20h
+            jne failed
+            mov ah, 1
+            int 13h
+            jnc failed
+            cmp ah, 20h
+            jne failed
+            mov si, passed
+            jmp print
+        failed: mov si, error
+        print:
+            lodsb
+            test al, al
+            jz done
+            mov ah, 0eh
+            int 10h
+            jmp print
+        done: ret
+        passed: db 'ERROR PASS',13,10,0
+        error: db 'ERROR FAIL',13,10,0
+        buffer: times 512 db 0a5h
+        ''')
+        image=image_builder.build(fw.BIOS.with_name('os-boot.bin').read_bytes(),
+            fw.BIOS.with_name('os-kernel.bin').read_bytes(),[('ERROR.COM',program)])
+        session=Session(image,writable=True)
+        session.write_error=0x20
+        session.boot();session.until()
+        self.assertIn(b'ERROR PASS',session.command('RUN ERROR'))
+        self.assertEqual(bytes(session.image),image)
+        self.assertFalse(session.board.absent_accesses)
