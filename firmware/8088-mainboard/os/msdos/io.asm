@@ -603,15 +603,27 @@ initialize:
     xor dl, dl
     mov ah, 0eh
     int 21h
+    mov byte [cs:boot_phase], 1
     mov dx, command_name
     mov bx, exec_block
     mov ax, 4b00h
     int 21h
     mov [exec_error], ax
 boot_error:
+    ; This can be entered from INT 24h on DOS's user stack. Abandon DOS:
+    ; no DOS calls or return through its incomplete EXEC context are safe.
+    cli
     mov ax, cs
+    mov ss, ax
+    mov sp, bootstrap_stack_top
     mov ds, ax
+    cld
+    sti
     mov si, error_message
+    cmp byte [boot_phase], 1
+    jne .report
+    mov si, command_error_message
+.report:
     call print
 .halt:
     mov ah, 1
@@ -631,8 +643,10 @@ print:
 interrupt_return:
     iret
 critical_error:
-    mov al, 3
-    iret
+    ; Bootstrap-only handler; COMMAND installs its own INT 24h after loading.
+    ; DOS 2.00 has no "fail" return (AL=3). Returning "abort" would terminate
+    ; the bootstrap PSP rather than return an EXEC error, so stop explicitly.
+    jmp boot_error
 fast_console:
     push ax
     push bx
@@ -644,7 +658,8 @@ fast_console:
     iret
 loading: db 'Loading Microsoft MS-DOS 2.0...', 13, 10, 0
 initialized: db 'Starting COMMAND.COM...', 13, 10, 0
-error_message: db 'DOS boot failed.', 13, 10, 0
+error_message: db 'DOS boot failed. Reset to retry.', 13, 10, 0
+command_error_message: db 'DOS boot failed: cannot load COMMAND.COM. Reset to retry.', 13, 10, 0
 con_name: db 'CON', 0
 aux_name: db 'AUX', 0
 prn_name: db 'PRN', 0
@@ -657,3 +672,4 @@ exec_block:
     dw 006ch, ROOT_PSP
 dos_version: dw 0
 exec_error: dw 0
+boot_phase: db 0

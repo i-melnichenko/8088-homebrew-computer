@@ -64,6 +64,11 @@ At 9600 baud, initial loading can take roughly one to two minutes. The terminal
 shows the loader, Microsoft DOS banner, COMMAND banner and an `A>` prompt.
 AUTOEXEC.BAT disables batch echo and runs VER.
 
+If a boot disk read fails or COMMAND.COM cannot be loaded, the OEM bootstrap
+prints `DOS boot failed` (with the COMMAND.COM name when applicable) and waits
+for Reset. It does not continue with a partially loaded program or restart the
+DOS loader. UART servicing remains active in this failure state.
+
 Try:
 
 ```text
@@ -192,8 +197,10 @@ After `make msdos`, the optional `tests/test_msdos.py` integration test boots th
 real Microsoft binaries in the board emulator and exercises VER, DIR, TYPE,
 a DOS COM executable, TIME, one-chip RAM0 operation, and original Microsoft
 DEBUG loading/disassembly/single-step/execution/exit. Writable tests exercise
-files, directories, batch execution and persistence after reboot. Clock
-arithmetic tests also run without downloading Microsoft files. The default
+files, directories, batch execution and persistence after reboot. Boot failure
+tests cover read errors at the start, middle and end of COMMAND.COM, a missing
+COMMAND.COM, and an early kernel read failure. Clock arithmetic tests also run
+without downloading Microsoft files. The default
 Docker `make test` rebuilds only BIOS/HOME8088 and excludes host build output,
 so DOS/Zork boot tests skip there. See the [full local test command](../../README.md#verification)
 to include generated DOS/Zork images. Emulator results do not

@@ -28,6 +28,7 @@ class Session:
         self.image = image or fw.BIOS.with_name('home8088.img').read_bytes()
         self.writable = writable
         self.write_error = 0
+        self.read_error_lbas = set()
         if writable:
             self.image = bytearray(self.image)
         self.output = bytearray()
@@ -72,12 +73,15 @@ class Session:
             ident,lba,offset = struct.unpack('<3H',poll[2:])
             self.sectors.append(lba)
             assert lba < 2880 and offset < 512
-            for pos in range(offset,512,120):
-                data = struct.pack('<HHB',ident,pos,0)+self.image[lba*512+pos:lba*512+min(pos+120,512)]
-                assert b.transact(fw.DISK_DATA,data) == b'\0'
-                if duplicate:
+            if lba in self.read_error_lbas:
+                assert b.transact(fw.DISK_DATA,struct.pack('<HHB',ident,offset,0x80)) == b'\0'
+            else:
+                for pos in range(offset,512,120):
+                    data = struct.pack('<HHB',ident,pos,0)+self.image[lba*512+pos:lba*512+min(pos+120,512)]
                     assert b.transact(fw.DISK_DATA,data) == b'\0'
-            b.cpu.ctl_flush_tb()
+                    if duplicate:
+                        assert b.transact(fw.DISK_DATA,data) == b'\0'
+                b.cpu.ctl_flush_tb()
         self.output += b.transact(fw.TERMINAL_POLL)[2:]
 
     def until(self, marker=b'A> ', limit=220):

@@ -37,6 +37,52 @@ class DOSSession(Session):
 
 @unittest.skipUnless(IMAGE.exists(), 'build the pinned Microsoft image with make msdos')
 class MSDOSBootTest(unittest.TestCase):
+    def test_command_load_errors_stop_boot_without_restarting(self):
+        original = IMAGE.read_bytes()
+        entry = next(offset for offset in range(35*512,49*512,32)
+                     if original[offset:offset+11] == b'COMMAND COM')
+        cluster = struct.unpack_from('<H',original,entry+26)[0]
+        size = struct.unpack_from('<I',original,entry+28)[0]
+        first = 49+cluster-2
+        count = (size+511)//512
+        for failed_sector in (first, first+count//2, first+count-1, None):
+            with self.subTest(failed_sector=failed_sector):
+                image = bytearray(original)
+                if failed_sector is None:
+                    image[entry:entry+11] = b'MISSING COM'
+                session = DOSSession(bytes(image))
+                if failed_sector is not None:
+                    session.read_error_lbas.add(failed_sector)
+                session.boot()
+                error = b'DOS boot failed: cannot load COMMAND.COM. Reset to retry.'
+                session.wait_output(error,limit=300)
+                # Even after the host recovers, a half-loaded shell must not
+                # execute or restart DOS. UART service remains responsive.
+                session.read_error_lbas.clear()
+                reads = list(session.sectors)
+                for _ in range(30):
+                    session.step()
+                output = bytes(session.output)
+                self.assertEqual(output.count(b'Loading Microsoft MS-DOS'),1)
+                self.assertEqual(output.count(b'Starting COMMAND.COM'),1)
+                self.assertEqual(output.count(error),1)
+                self.assertNotIn(b'Command v.',output)
+                self.assertEqual(session.sectors,reads)
+                self.assertEqual(session.board.transact(fw.PING),b'\0')
+                self.assertFalse(session.board.absent_accesses)
+
+    def test_kernel_read_error_stops_on_bootstrap_stack(self):
+        session = DOSSession(IMAGE.read_bytes())
+        session.read_error_lbas.add(49)
+        session.boot()
+        session.wait_output(b'DOS boot failed. Reset to retry.',limit=100)
+        for _ in range(20):
+            session.step()
+        self.assertEqual(bytes(session.output).count(b'Loading Microsoft MS-DOS'),1)
+        self.assertNotIn(b'Starting COMMAND.COM',session.output)
+        self.assertEqual(session.board.transact(fw.PING),b'\0')
+        self.assertFalse(session.board.absent_accesses)
+
     def test_microsoft_kernel_command_files_and_dos_application(self):
         session = DOSSession(IMAGE.read_bytes())
         session.boot()
