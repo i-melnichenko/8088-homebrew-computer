@@ -102,6 +102,23 @@ class Session:
 
 
 class PCBootTest(unittest.TestCase):
+    def test_lcd_disk_mode_at_boot_and_after_console_clear(self):
+        program = com('mov ax, 3\nint 10h\nret\n')
+        image = image_builder.build(fw.BIOS.with_name('os-boot.bin').read_bytes(),
+            fw.BIOS.with_name('os-kernel.bin').read_bytes(), [('CLEAR.COM', program)])
+        for mask in (1, 3):
+            for writable in (False, True):
+                with self.subTest(mask=mask, writable=writable):
+                    session = Session(image, mask=mask, writable=writable)
+                    session.boot()
+                    session.until()
+                    expected = (b'DISK A: READ/WRITE' if writable else
+                                b'DISK A: READ ONLY').ljust(20)
+                    self.assertEqual(bytes(session.board.lcd[0x14:0x28]), expected)
+                    session.board.lcd[0x14:0x28] = b'X' * 20
+                    session.command('RUN CLEAR')
+                    self.assertEqual(bytes(session.board.lcd[0x14:0x28]), expected)
+
     def test_boot_shell_directory_and_applications_with_private_stacks(self):
         session = Session()
         session.boot()

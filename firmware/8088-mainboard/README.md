@@ -57,7 +57,12 @@ remain short and must not reenter cooperative transport processing.
 
 ## Monitor
 
-The LCD menu contains Default boot, Memory check and Info. Default boot enters
+The LCD menu contains Default boot, Memory check, IRQ test and Info; use the
+arrow keys to scroll. IRQ test checks eight PIT channel 0 → PIC IRQ0 → CPU
+interrupts, reports PASS/TIMEOUT or missing hardware, and restores the runtime.
+Esc returns to the menu. Info includes the same POST/runtime fields as UART
+`boardctl info`, including tested RAM banks, PIC/PIT, timer and UART RX mode.
+Default boot enters
 the mounted UART floppy; without a mounted image it reports NO BOOT TARGET.
 There is no automatic countdown. Info lists board, firmware and protocol data.
 The RAM test explicitly confirms erasure and preserves live BIOS state/stack

@@ -418,13 +418,14 @@ class Board:
         # Synchronize with the renderer, then inspect the actual emulated LCD.
         # Finish the reply and let a pending render leave its initial state.
         self.advance(1000)
+        bank = self.cpu.reg_read(UC_X86_REG_SS) * 16
         for _ in range(2000):
-            dirty = self.cpu.mem_read(0x8688, 1)[0]
-            position = self.cpu.mem_read(0x8696, 1)[0]
+            dirty = self.cpu.mem_read(bank + 0x8688, 1)[0]
+            position = self.cpu.mem_read(bank + 0x8696, 1)[0]
             if not dirty and position >= 80:
                 # MENU_DIRTY is cleared before the new frame is built. Do not
                 # mistake that short window for a completed physical redraw.
-                frame = bytes(self.cpu.mem_read(0x8620, 80))
+                frame = bytes(self.cpu.mem_read(bank + 0x8620, 80))
                 physical = b"".join(self.lcd[start:start + 20]
                                     for start in (0, 0x40, 0x14, 0x54))
                 if all(a == b or (i in (20, 40, 60) and a == ord('>') and b == ord(' '))
@@ -438,8 +439,8 @@ class Board:
         # Normalize only the blinking marker for content assertions. Separate
         # blink tests below inspect the physical cell without normalization.
         if (self.cpu.reg_read(UC_X86_REG_CS) == 0xf800
-                and self.cpu.mem_read(0x867a, 1)[0] == 0):
-            selected = self.cpu.mem_read(0x8679, 1)[0]
+                and self.cpu.mem_read(bank + 0x867a, 1)[0] == 0):
+            selected = self.cpu.mem_read(bank + 0x8679, 1)[0]
             row = min(selected, 2) + 1
             assert rows[row][0] in "> "
             rows[row] = ">" + rows[row][1:]
@@ -466,6 +467,28 @@ class Board:
         assert [row.strip() for row in self.screen()] == [
             "FULL RAM TEST", "RAM WILL BE ERASED!", "", "YES:ENTER  NO:ESC"]
         self.key(3)
+
+    def lcd_info(self):
+        self.key(1)                 # wrap to the last root item, Info
+        self.key(3)
+        rows = self.screen()
+        lines = [row[:19].rstrip() for row in rows[1:]]
+        while rows[3][-1] == 'v':
+            self.key(2)
+            rows = self.screen()
+            lines.append(rows[3][:19].rstrip())
+        return lines
+
+    def menu_irq_result(self):
+        self.key(2)
+        self.key(2)
+        self.key(3)
+        bank = self.cpu.reg_read(UC_X86_REG_SS) * 16
+        for _ in range(40):
+            self.advance(100000)
+            if self.cpu.mem_read(bank + 0x867a, 1)[0] == 8:
+                return [row.strip() for row in self.screen()]
+        raise AssertionError('menu IRQ test did not finish within its software timeout')
 
 
 class FirmwareTest(unittest.TestCase):
@@ -499,13 +522,110 @@ class MonitorV2Test(unittest.TestCase):
         self.assertEqual(len(ram),11)
         self.assertEqual(struct.unpack('<I',ram[4:8])[0],256*1024)
         self.assertEqual(struct.unpack('<H',ram[8:10])[0],256)
-        self.assertEqual([line.strip() for line in board.screen()],["8088 MAINBOARD","> Default boot","Memory check","Info"])
+        self.assertEqual([line[:19].strip() for line in board.screen()],
+                         ["8088 MAINBOARD","> Default boot","Memory check","IRQ test"])
         self.assertEqual(board.transact(0x7f),b"\1")
         raw=struct.pack('<BBBH',1,PING,99,0)
         raw+=struct.pack('<H',binascii.crc_hqx(raw,0xffff))
         board.tx.clear();board.rx.extend(cobs_packet(raw));board.advance(300000)
         self.assertEqual(board.tx,b'')
         self.assertEqual(board.transact(PING),b'\0')
+
+    def test_lcd_info_shows_tested_installed_ram_while_scrolling(self):
+        for mask in (1, 3, 5, 16, 31):
+            with self.subTest(mask=mask):
+                board = Board(ram_mask=mask)
+                board.key(2)
+                board.key(2)
+                board.key(2)
+                board.key(3)
+                self.assertEqual(board.screen()[0].strip(), 'INFO')
+                expected = f'RAM: {mask.bit_count() * 128} KiB'
+                for row in (3, 2, 1):
+                    board.key(2)
+                    self.assertEqual(board.screen()[row][:19].rstrip(), expected)
+                board.key(2)
+                board.key(1)
+                self.assertEqual(board.screen()[1][:19].rstrip(), expected)
+
+    def test_lcd_info_matches_uart_post_and_runtime_fields(self):
+        cases = (
+            dict(ram_mask=3, pic=True, pit='running', irq_delivery='working'),
+            dict(ram_mask=5),
+            dict(ram_mask=16, pic=True, pit='running', irq_delivery='working'),
+            dict(ram_mask=31, pic=True, pit='running', irq_delivery='timer-only'),
+            dict(ram_mask=1, pic=True, pit='running', irq_delivery='uart-only'),
+            dict(ram_mask=1, pic=True, pit='stopped', irq_delivery='working'),
+        )
+        for config in cases:
+            with self.subTest(config=config):
+                board = Board(**config)
+                summary = board.transact(INFO)[1:].decode()
+                flags = int(re.search(r';IRQ (\d+)', summary)[1])
+                mask = int(re.search(r';RAM mask ([0-9A-F]+)', summary)[1], 16)
+                work = int(re.search(r';work (\d)', summary)[1])
+                lines = board.lcd_info()
+                expected = [
+                    'BIOS: ' + re.search(r'^BIOS ([^;]+)', summary)[1],
+                    'BOARD: REV 2', 'ROM AT: F800:0000',
+                    f'RAM: {mask.bit_count() * 128} KiB',
+                    'UART: 9600 8N1', 'UART I/O: 3F8-3FF',
+                    'PROTOCOL: 2.0', 'API: 1',
+                    f'BANKS: {mask:02X} ' + ','.join(str(i) for i in range(5) if mask & (1 << i)),
+                    f'WORK BANK: {work}',
+                    'SOFT INT: AVAILABLE' if ';INT 1;' in summary else 'SOFT INT: NO RAM0',
+                    ('PIC: YES, IRQ ON' if flags else 'PIC: YES, MASKED')
+                        if ';PIC 1;' in summary else 'PIC: NOT DETECTED',
+                    'PIT: DETECTED' if ';PIT 1;' in summary else 'PIT: NOT DETECTED',
+                    ('PIT COUNT: RUNNING' if ';CLK 1;' in summary else 'PIT COUNT: STOPPED')
+                        if ';PIT 1;' in summary else 'PIT COUNT: N/A',
+                    'TIMER: IRQ0 18.2Hz' if flags & 1 else 'TIMER: SOFTWARE',
+                    'UART RX: IRQ4 BUF' if flags & 2 else 'UART RX: POLLING',
+                ]
+                for line in expected:
+                    self.assertIn(line, lines, summary)
+                self.assertEqual(board.transact(PING), b'\0')
+
+    def test_menu_irq_pass_restores_runtime_and_root_scrolling(self):
+        board = Board(ram_mask=3, pic=True, pit='running', irq_delivery='working')
+        board.key(1)
+        rows = board.screen()
+        self.assertEqual(rows[1][-1], '^')
+        self.assertEqual(rows[3][:19].strip(), '> Info')
+        board.key(2)
+        self.assertEqual(board.screen()[1][:19].strip(), '> Default boot')
+        vector = bytes(board.cpu.mem_read(8 * 4, 4))
+        flags = bytes(board.cpu.mem_read(0x8000, 1))
+        rows = board.menu_irq_result()
+        self.assertEqual(rows[0:2], ['IRQ TEST', 'RESULT: PASS'])
+        self.assertRegex(rows[2], r'^IRQS:0\d\d/008$')
+        self.assertGreaterEqual(int(rows[2][5:8]), 8)
+        self.assertEqual(rows[3], 'ESC: BACK')
+        self.assertEqual(bytes(board.cpu.mem_read(8 * 4, 4)), vector)
+        self.assertEqual(bytes(board.cpu.mem_read(0x8000, 1)), flags)
+        self.assertEqual(board.transact(PING), b'\0')
+        board.key(4)
+        self.assertEqual(board.screen()[0].strip(), '8088 MAINBOARD')
+        self.assertEqual(board.transact(IRQ_TEST)[:2], b'\0\0')
+
+    def test_menu_irq_missing_prerequisites_and_timeout(self):
+        cases = (
+            (dict(ram_mask=2), 'RAM0 REQUIRED'),
+            (dict(ram_mask=1), 'PIC NOT DETECTED'),
+            (dict(ram_mask=1, pic=True), 'PIT NOT DETECTED'),
+            (dict(ram_mask=1, pic=True, pit='stopped'), 'PIT NOT COUNTING'),
+            (dict(ram_mask=1, pic=True, pit='running', irq_delivery='broken'), 'RESULT: TIMEOUT'),
+        )
+        for config, status in cases:
+            with self.subTest(config=config):
+                board = Board(**config)
+                vector = bytes(board.cpu.mem_read(8 * 4, 4))
+                rows = board.menu_irq_result()
+                self.assertEqual(rows, ['IRQ TEST', status, 'IRQS:000/008', 'ESC: BACK'])
+                self.assertEqual(bytes(board.cpu.mem_read(8 * 4, 4)), vector)
+                self.assertEqual(board.transact(PING), b'\0')
+                board.key(4)
+                self.assertEqual(board.screen()[0].strip(), '8088 MAINBOARD')
 
     def test_optional_ram_banks_and_chips(self):
         for mask in (1,2,4,8,16,3,5,31):

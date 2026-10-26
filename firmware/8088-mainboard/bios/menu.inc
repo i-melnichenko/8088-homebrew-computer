@@ -56,6 +56,8 @@ menu_key:
     cmp byte [es:MENU_SELECTED], 1
     je .memory
     cmp byte [es:MENU_SELECTED], 2
+    je .irq
+    cmp byte [es:MENU_SELECTED], 3
     je .show_info
     cmp byte [es:API_HOST_MODE], 2
     jne .no_boot
@@ -74,6 +76,9 @@ menu_key:
     jmp .changed
 .memory:
     mov byte [es:MENU_PAGE], PAGE_CONFIRM
+    jmp .changed
+.irq:
+    mov byte [es:MENU_PAGE], PAGE_IRQ_TEST
     jmp .changed
 .show_info:
     mov byte [es:MENU_PAGE], PAGE_INFO
@@ -109,6 +114,10 @@ menu_render:
     cmp al, PAGE_MENU
     jne .info
     xor bp, bp
+    cmp byte [es:MENU_SELECTED], 3
+    jb .root_rows
+    inc bp
+.root_rows:
     mov dx, 3
 .row:
     mov bx, bp
@@ -125,8 +134,20 @@ menu_render:
     inc bp
     dec dx
     jnz .row
+    mov ax, bp
+    sub ax, 3
+    mov bx, MENU_ITEMS
+    call menu_scroll_rail
     jmp .done
 .info:
+    cmp al, PAGE_IRQ_TEST
+    je .irq
+    cmp al, PAGE_IRQ_RESULT
+    jne .not_irq
+.irq:
+    call menu_irq_render
+    jmp .done
+.not_irq:
     cmp al, PAGE_INFO
     jne .confirm
     call info_render
@@ -495,10 +516,12 @@ menu_lcd_rows: db LCD_LINE1, LCD_LINE2, LCD_LINE3, LCD_LINE4
 menu_headers:
     dw menu_root_title, info_title, memory_confirm_title, memory_title
     dw memory_title, boot_title, memory_title
+    dw menu_irq_title, menu_irq_title
 menu_root_title: db "8088 MAINBOARD", 0
-menu_names: dw menu_boot, menu_memory, menu_info
+menu_names: dw menu_boot, menu_memory, menu_irq_name, menu_info
 menu_boot: db '  Default boot', 0
 menu_memory: db '  Memory check', 0
+menu_irq_name: db '  IRQ test', 0
 menu_info: db '  Info', 0
 back_hint: db 'ESC: BACK', 0
 boot_title: db 'DEFAULT BOOT', 0
