@@ -1,0 +1,22 @@
+{
+  "story": {
+    "url": "https://raw.githubusercontent.com/historicalsource/zork1/97b7b3d68c075dd9af7da499c3e9690ada3471fd/COMPILED/zork1.z3",
+    "file": "zork1.z3",
+    "sha256": "37084966477dff679282de42974b2077156b1bd68fad92a65d4ea94d8eb64d79"
+  },
+  "license": {
+    "url": "https://raw.githubusercontent.com/historicalsource/zork1/97b7b3d68c075dd9af7da499c3e9690ada3471fd/LICENSE",
+    "file": "LICENSE.txt",
+    "sha256": "98a96c38494df4963951e32b81ec4effebe4c8a812ab8d9e7d185d59e86fe2fc"
+  },
+  "interpreter": {
+    "url": "https://raw.githubusercontent.com/erkyrath/infocom-zcode-terps/d5ac95a838483af89004dc9f5027abc0163a2ecc/msdos/mszip.asm",
+    "file": "mszip.asm",
+    "sha256": "3201108cba2614c3541180b074019af4bd72a4f7cdd1e2fa38a2c004dc259d52"
+  },
+  "assembler": {
+    "url": "https://codeload.github.com/JWasm/JWasm/zip/a5c4ea03cc0545a15d81a354251b5f534bef7a1b",
+    "file": "jwasm.zip",
+    "sha256": "1f87df98a18a556f8c54e79199e7f9048a400363a7a6cdbfea1e57c7e1506c62"
+  }
+}

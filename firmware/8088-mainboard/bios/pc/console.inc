@@ -155,8 +155,14 @@ pc_lcd_status:
     mov al, LCD_LINE2
     mov si, pc_lcd_console
     call lcd_write_line
+    mov si, pc_lcd_disk_readonly
+    RUNTIME_ENTER
+    cmp byte [es:PC_WRITABLE], 1
+    RUNTIME_LEAVE
+    jne .disk
+    mov si, pc_lcd_disk_writable
+.disk:
     mov al, LCD_LINE3
-    mov si, pc_lcd_disk
     call lcd_write_line
     mov al, LCD_LINE4
     mov si, pc_lcd_blank
@@ -166,5 +172,6 @@ pc_lcd_status:
     ret
 pc_lcd_title: db 'OPERATING SYSTEM', 0
 pc_lcd_console: db 'UART CONSOLE 80X25', 0
-pc_lcd_disk: db 'DISK A: READ ONLY', 0
+pc_lcd_disk_readonly: db 'DISK A: READ ONLY', 0
+pc_lcd_disk_writable: db 'DISK A: READ/WRITE', 0
 pc_lcd_blank: db 0

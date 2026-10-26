@@ -36,6 +36,13 @@ func runWithSerial(args []string, open func(string) (io.ReadWriteCloser, error))
 			return nil
 		}
 	}
+	if cmd.terminal.diskImage != nil && !cmd.terminal.diskReadonly {
+		cmd.terminal.diskFile, err = openWritableDisk(cmd.terminal.diskPath, cmd.terminal.diskImage)
+		if err != nil {
+			return err
+		}
+		defer cmd.terminal.diskFile.Close()
+	}
 	serial, err := open(cmd.port)
 	if err != nil {
 		return fmt.Errorf("open serial port: %w", err)

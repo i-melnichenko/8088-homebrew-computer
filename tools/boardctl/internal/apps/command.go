@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-const usage = "usage: boardctl [-port DEVICE] terminal [--disk IMAGE [--boot]] | keyboard | console | ping | info | ram | ram-test | irq-test | dump --addr ADDRESS --size BYTES [--output FILE] | write --addr ADDRESS FILE | bios-flasher-mode | bios-read [--output FILE] [--verify FILE] | bios-write [--reset] [--timeout DURATION] FILE | reset"
+const usage = "usage: boardctl [-port DEVICE] terminal [--disk IMAGE [--disk-readonly] [--boot]] | keyboard | console | ping | info | ram | ram-test | irq-test | dump --addr ADDRESS --size BYTES [--output FILE] | write --addr ADDRESS FILE | bios-flasher-mode | bios-read [--output FILE] [--verify FILE] | bios-write [--reset] [--timeout DURATION] FILE | reset"
 const ramTestUsage = "usage: boardctl ram-test"
 const dumpUsage = "usage: boardctl dump --addr ADDRESS --size BYTES [--output FILE]"
 const writeUsage = "usage: boardctl write --addr ADDRESS FILE"
@@ -28,8 +28,11 @@ type command struct {
 }
 
 type terminalOptions struct {
-	diskImage []byte
-	bootDisk  bool
+	diskImage    []byte
+	diskPath     string
+	diskReadonly bool
+	diskFile     *os.File
+	bootDisk     bool
 }
 
 func parseFlags(fs *flag.FlagSet, args []string, usage string) error {
@@ -66,8 +69,9 @@ func prepareCommand(args []string) (command, error) {
 		fs := flag.NewFlagSet(cmd.name, flag.ContinueOnError)
 		var path string
 		if cmd.name == "terminal" {
-			commandUsage += " [--disk IMAGE [--boot]]"
-			fs.StringVar(&path, "disk", "", "serve a read-only 1.44-MiB floppy image")
+			commandUsage += " [--disk IMAGE [--disk-readonly] [--boot]]"
+			fs.StringVar(&path, "disk", "", "serve a 1.44-MiB floppy image (writable by default)")
+			fs.BoolVar(&cmd.terminal.diskReadonly, "disk-readonly", false, "protect the disk image from guest writes")
 			fs.BoolVar(&cmd.terminal.bootDisk, "boot", false, "boot from the mounted floppy")
 		}
 		if err := parseFlags(fs, args, commandUsage); err != nil {
@@ -76,10 +80,11 @@ func prepareCommand(args []string) (command, error) {
 		if fs.NArg() != 0 {
 			return cmd, errors.New(commandUsage)
 		}
-		if cmd.terminal.bootDisk && path == "" {
-			return cmd, errors.New("--boot requires --disk")
+		if (cmd.terminal.bootDisk || cmd.terminal.diskReadonly) && path == "" {
+			return cmd, errors.New("--boot and --disk-readonly require --disk")
 		}
 		if path != "" {
+			cmd.terminal.diskPath = path
 			var err error
 			cmd.terminal.diskImage, err = prepareDisk(path)
 			if err != nil {

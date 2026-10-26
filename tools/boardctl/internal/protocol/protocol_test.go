@@ -47,7 +47,7 @@ func TestCommandValues(t *testing.T) {
 		Ping, Info, Reset,
 		BIOSFlasherMode, BIOSWrite, BIOSRead,
 		MemoryRead, MemoryWrite,
-		KeyboardMode, KeyboardEvent, RAMInfo, RAMTest, TerminalPoll, IRQTest, DiskMount, DiskBoot, DiskPoll, DiskData,
+		KeyboardMode, KeyboardEvent, RAMInfo, RAMTest, TerminalPoll, IRQTest, DiskMount, DiskBoot, DiskPoll, DiskData, DiskWriteData, DiskWriteAck,
 	}
 	for i, command := range commands {
 		if want := byte(i + 1); command != want {

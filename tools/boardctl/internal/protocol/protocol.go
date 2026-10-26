@@ -161,8 +161,10 @@ func cobsDecode(in []byte) ([]byte, error) {
 }
 
 const (
-	DiskMount byte = 0x0f
-	DiskBoot  byte = 0x10
-	DiskPoll  byte = 0x11
-	DiskData  byte = 0x12
+	DiskMount     byte = 0x0f
+	DiskBoot      byte = 0x10
+	DiskPoll      byte = 0x11
+	DiskData      byte = 0x12
+	DiskWriteData byte = 0x13
+	DiskWriteAck  byte = 0x14
 )

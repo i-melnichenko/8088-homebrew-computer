@@ -6,6 +6,7 @@
 */**/*_drc_violations.json
 firmware/*/*.bin
 firmware/8088-mainboard/build/
+firmware/8088-mainboard/disks/
 */**/*_drc_violations.json
 /tools/boardctl/boardctl
 

@@ -48,4 +48,5 @@ monitor_loop:
     call menu_render
     call menu_blink_step
     call menu_lcd_step
+    call menu_irq_step
     jmp monitor_loop

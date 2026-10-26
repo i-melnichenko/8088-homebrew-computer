@@ -79,7 +79,9 @@ PAGE_TEST equ 3
 PAGE_RESULT equ 4
 PAGE_NO_BOOT equ 5
 PAGE_CANCELLED equ 6
-MENU_ITEMS equ 3                       ; default boot, memory, info
+PAGE_IRQ_TEST equ 7
+PAGE_IRQ_RESULT equ 8
+MENU_ITEMS equ 4                       ; default boot, memory, IRQ, info
 
 %include "uart/constants.inc"
 

@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/microsoft/MS-DOS",
+  "commit": "2d04cacc5322951f187bb17e017c12920ac8ebe2",
+  "files": {
+    "MSDOS.SYS": {
+      "path": "v2.0/bin/MSDOS.SYS",
+      "sha256": "1edf5190671ed4edcc9e6cc095e5094749c58f1833a2e26e40ba7d3389e276d1"
+    },
+    "COMMAND.COM": {
+      "path": "v2.0/bin/COMMAND.COM",
+      "sha256": "4cc71b3692b894eef9a7c8b3ac0fc63a71bdfa08175089562fdc4c7c5b038e8a"
+    },
+    "LICENSE.TXT": {
+      "path": "LICENSE",
+      "sha256": "b5179f780ec212a434efcc989a2295a140deb0bdb17182d2bf9c5f6f1f1a01c4"
+    },
+    "DEBUG.COM": {
+      "path": "v2.0/bin/DEBUG.COM",
+      "sha256": "cbb171acca2a5581d926b6782aebeaad49111ecd359e64cf6f2e5dd0a000b4ca"
+    }
+  }
+}
