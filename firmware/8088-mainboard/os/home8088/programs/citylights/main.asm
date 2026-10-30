@@ -39,11 +39,11 @@ start:
     mov [lcd_enabled], dl
     mov byte [uart_enabled], 0
     mov byte [link_failed], 0
-    cmp al, 1                     ; framed keyboard mode must not receive ANSI
+    cmp al, 1                     ; framed keyboard mode has no terminal output
     je .lcd
     mov byte [uart_enabled], 1
-    mov si, terminal_open
-    mov cx, terminal_open_end - terminal_open
+    mov si, service_start
+    mov cx, service_start_end - service_start
     call terminal_write
 .lcd:
     cmp byte [lcd_enabled], 0
@@ -59,10 +59,6 @@ start:
     bios_lcd_glyph WALKER_GLYPH, walker_glyph_a
 
 .initialized:
-    mov di, terminal_old
-    mov cx, SCREEN_CELLS
-    mov al, 0FFh
-    rep stosb
     mov di, old_frame
     call fill_spaces
     call draw_intro
@@ -99,8 +95,8 @@ start:
 .done:
     cmp byte [uart_enabled], 0
     je .return
-    mov si, terminal_close
-    mov cx, terminal_close_end - terminal_close
+    mov si, service_exit
+    mov cx, service_exit_end - service_exit
     call terminal_write
 .return:
     cld
@@ -338,7 +334,7 @@ fill_spaces:
 ; Write only LCD cells that changed. INT 60h/AH=04h preserves SI, DI and DX.
 present_frame:
     cmp byte [lcd_enabled], 0
-    je terminal_present
+    je .done
     mov si, next_frame
     mov di, old_frame
     xor dx, dx
@@ -359,77 +355,6 @@ present_frame:
     inc dh
     cmp dh, BIOS_LCD_ROWS
     jb .cell
-    jmp terminal_present
-
-; Translate LCD CGRAM codes into printable ASCII. Compare translated rows,
-; so changes to cloud/walker glyph shapes also appear on the PC terminal.
-terminal_present:
-    cmp byte [uart_enabled], 0
-    je .done
-    xor di, di
-    mov byte [terminal_cursor + 2], '1'
-.row:
-    mov si, next_frame
-    add si, di
-    mov bx, terminal_row
-    mov cx, BIOS_LCD_COLUMNS
-.translate:
-    lodsb
-    cmp al, DARK_WALL
-    jne .glyph
-    mov al, '#'
-    jmp .store
-.glyph:
-    cmp al, 8
-    jae .store
-    push bx
-    xor bx, bx
-    mov bl, al
-    mov al, [ascii_glyphs + bx]
-    cmp bl, CLOUD_GLYPH
-    jne .walker
-    cmp byte [cloud_variant], 0
-    je .walker
-    mov al, '='
-.walker:
-    cmp bl, WALKER_GLYPH
-    jne .translated
-    test byte [scene_tick], 4
-    jz .translated
-    mov al, '!'
-.translated:
-    pop bx
-.store:
-    mov [bx], al
-    inc bx
-    loop .translate
-    push di
-    add di, terminal_old
-    mov si, terminal_row
-    mov cx, BIOS_LCD_COLUMNS
-    repe cmpsb
-    pop di
-    je .next_row
-    ; Publish the translated row only after its output has been accepted.
-    mov si, terminal_cursor
-    mov cx, 6
-    call terminal_write
-    mov si, terminal_row
-    mov cx, BIOS_LCD_COLUMNS
-    call terminal_write
-    cmp byte [link_failed], 0
-    jne .done
-    push di
-    add di, terminal_old
-    mov si, terminal_row
-    mov cx, BIOS_LCD_COLUMNS
-    rep movsb
-    pop di
-.next_row:
-    add di, BIOS_LCD_COLUMNS
-    inc byte [terminal_cursor + 2]
-    cmp di, SCREEN_CELLS
-    jb .row
 .done:
     ret
 
@@ -518,15 +443,10 @@ walker_glyph_a:
 walker_glyph_b:
     db 00000b, 00100b, 00100b, 01110b, 00100b, 01010b, 01010b, 00000b
 
-; Printable glyph equivalents, never transmit LCD control codes to a terminal.
-ascii_glyphs: db 'C', 'O', '*', '~', '^', 'H', 'o', 'i'
-terminal_open: db 27,'[0m',27,'[2J',27,'[H',27,'[36m',27,'[?25l'
-terminal_open_end:
-terminal_close: db 27,'[0m',27,'[?25h',13,10
-terminal_close_end:
-terminal_cursor: db 27,'[1;1H'
+service_start: db 'CITY LIGHTS: animation on LCD. Esc: return to HOME8088.',13,10
+service_start_end:
+service_exit: db 'CITY LIGHTS: exit.',13,10
+service_exit_end:
 lcd_enabled: db 0
 uart_enabled: db 0
 link_failed: db 0
-terminal_row: times BIOS_LCD_COLUMNS db ' '
-terminal_old: times SCREEN_CELLS db 0FFh

@@ -15,7 +15,7 @@ Run these commands from `firmware/8088-mainboard`. `make bios` builds the shared
 ROM. The DOS targets explicitly fetch pinned upstream files; the default build
 stays offline.
 
-HOME8088 provides a small native shell and the CITY, REACTOR and TERMINAL
+HOME8088 provides a small native shell and the CITY, TIMER and TERMINAL
 applications. MS-DOS provides the original Microsoft DOS kernel and command
 interpreter with the board's OEM I/O layer; DEBUG and Zork I are validated DOS
 applications. The Zork image is an MS-DOS configuration with an additional game.

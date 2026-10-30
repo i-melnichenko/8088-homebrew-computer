@@ -72,7 +72,7 @@ An interrupted FAT update can leave an incomplete filesystem change. Rebuilding
 an image replaces it, so keep user files and saves in a separate working copy under
 `firmware/8088-mainboard/disks/`, which survives `make clean`.
 
-The shell provides HELP, MEM, DIR, RUN CITY, RUN REACTOR, RUN TERMINAL and REBOOT.
+The shell provides HELP, MEM, DIR, RUN CITY, RUN TIMER, RUN TERMINAL and REBOOT.
 Esc exits the bundled apps. At 9600 baud loading takes time; the initial kernel
 transfer is roughly 12–20 seconds. See [the OS guide](../../firmware/8088-mainboard/os/home8088/README.md).
 

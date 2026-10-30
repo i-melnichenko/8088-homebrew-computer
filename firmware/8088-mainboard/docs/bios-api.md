@@ -173,7 +173,7 @@ The monotonic counter wraps modulo 2^32 and pauses in diagnostics/EEPROM mode.
 Delay rounds up to whole hardware ticks plus initial phase; zero is immediate.
 Without a verified timer, or after a stalled-clock watchdog, waiting uses
 approximate CPU work. Applications must inspect availability where exact time
-matters. Reactor accumulates PIT-clock fractions instead of assuming 18 exact
+matters. Timer accumulates PIT-clock fractions instead of assuming 18 exact
 hardware ticks per second.
 
 Block output preserves DS/SI/CX and other non-output registers; only AX/DX/CF

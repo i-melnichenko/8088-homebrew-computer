@@ -140,8 +140,13 @@ func keyboardExchange(c *client.Client, command byte, data []byte, attempts int)
 	return keyboardExchangeContext(context.Background(), c, command, data, attempts)
 }
 
+var errKeyboardQueueFull = errors.New("BIOS keyboard queue full")
+
 func keyboardExchangeContext(ctx context.Context, c *client.Client, command byte, data []byte, attempts int) (bool, error) {
 	f, err := c.TransactAttemptsContext(ctx, protocol.Frame{Command: command, Data: data}, attempts)
+	if err == nil && command == protocol.KeyboardEvent && len(f.Data) == 1 && f.Data[0] == 13 {
+		return false, errKeyboardQueueFull
+	}
 	if err := checkResponse(f, err); err != nil {
 		return false, err
 	}
@@ -290,13 +295,16 @@ func keyboardLoop(ctx context.Context, c *client.Client, inputs <-chan terminalI
 }
 
 func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan terminalInput, done <-chan struct{}, terminalMode bool, out io.Writer, disk *diskService) error {
-	var ticks <-chan time.Time
-	if terminalMode {
-		ticker := time.NewTicker(50 * time.Millisecond)
-		defer ticker.Stop()
-		ticks = ticker.C
-	}
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+	var pending *terminalInput
 	for {
+		// Keep the rejected key ahead of later input. BIOS status 13 means
+		// nothing was accepted; retry only after allowing the guest to progress.
+		nextInput := inputs
+		if pending != nil {
+			nextInput = nil
+		}
 		select {
 		case <-ctx.Done():
 			return nil
@@ -305,7 +313,7 @@ func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan termin
 				return nil
 			}
 			return errors.New("terminal input stopped")
-		case <-ticks:
+		case <-ticker.C:
 			if disk != nil && disk.image != nil {
 				if err := serviceDisk(ctx, c, disk.image, disk.writer); err != nil {
 					if ctx.Err() != nil {
@@ -314,25 +322,34 @@ func interactiveLoop(ctx context.Context, c *client.Client, inputs <-chan termin
 					return fmt.Errorf("virtual disk: %w", err)
 				}
 			}
-			if _, err := pollTerminal(ctx, c, out); err != nil {
-				if ctx.Err() != nil {
-					return nil
+			if terminalMode {
+				if _, err := pollTerminal(ctx, c, out); err != nil {
+					if ctx.Err() != nil {
+						return nil
+					}
+					return fmt.Errorf("terminal output: %w", err)
 				}
-				return fmt.Errorf("terminal output: %w", err)
 			}
-		case input := <-inputs:
+		case input := <-nextInput:
 			if input.char == 3 {
 				return nil
 			}
 			if input.char >= 128 || input == (terminalInput{}) {
 				continue
 			}
-			if _, err := keyboardExchangeContext(ctx, c, protocol.KeyboardEvent, []byte{input.char, input.scan}, 3); err != nil {
+			pending = &input
+		}
+		if pending != nil {
+			if _, err := keyboardExchangeContext(ctx, c, protocol.KeyboardEvent, []byte{pending.char, pending.scan}, 3); err != nil {
+				if errors.Is(err, errKeyboardQueueFull) {
+					continue
+				}
 				if ctx.Err() != nil {
 					return nil
 				}
 				return fmt.Errorf("keyboard input: %w", err)
 			}
+			pending = nil
 		}
 	}
 }
