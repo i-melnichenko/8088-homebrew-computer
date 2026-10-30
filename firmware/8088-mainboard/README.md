@@ -15,7 +15,7 @@ make bios os BIOS_VERSION=dev-disk
 
 `build/bios.bin` is the single 32-KiB image for the 28C256 at physical
 F8000..FFFFF. `build/home8088.img` is the FAT12 floppy containing
-HOME8088 OS and CITY.COM, REACTOR.COM, TERMINAL.COM. Examples build only as COM
+HOME8088 OS and CITY.COM, TIMER.COM, TERMINAL.COM. Examples build only as COM
 applications. HOME8088 only reads its filesystem; boardctl opens disk images
 read/write unless `--disk-readonly` is supplied. See
 [OS build, commands and memory layout](os/home8088/README.md).

@@ -129,11 +129,11 @@ class PCBootTest(unittest.TestCase):
         self.assertIn(b'224 KiB conventional RAM',session.command('mem'))
         self.assertIn(b'RUN name',session.command('help'))
         directory = session.command('dir')
-        for name in (b'CITY.COM',b'REACTOR.COM',b'TERMINAL.COM'):
+        for name in (b'CITY.COM',b'TIMER.COM',b'TERMINAL.COM'):
             self.assertIn(name,directory)
         self.assertIn(b'Program not found',session.command('run missing'))
         for name, marker in (('terminal',b'UART-to-LCD terminal ready'),
-                             ('city',b'CITY LIGHTS'),('reactor',b'ENTER:START')):
+                             ('city',b'CITY LIGHTS'),('timer',b'TIMER: display on LCD.')):
             session.type(('run '+name+'\r').encode())
             session.until(marker)
             session.type(b'\x1b')
@@ -141,6 +141,68 @@ class PCBootTest(unittest.TestCase):
             self.assertIn(b'224 KiB',session.command('mem'))
         self.assertTrue(session.board.hardware_irqs)
         self.assertFalse(session.board.absent_accesses)
+
+    def test_city_animation_is_lcd_only(self):
+        session = Session()
+        session.boot()
+        session.until()
+        start = len(session.output)
+        session.type(b'run city\r')
+        session.until(b'CITY LIGHTS: animation on LCD.')
+        frames = set()
+        for _ in range(60):
+            session.step()
+            frames.add(bytes(session.board.lcd))
+        self.assertGreater(len(frames), 1)
+        self.assertNotIn(b'\x1b', session.output[start:])
+        self.assertNotIn(b'CITY LIGHTS: exit.', session.output[start:])
+        session.type(b'\x1b')
+        self.assertIn(b'CITY LIGHTS: exit.', session.until())
+
+    def test_timer_controls_countdown_and_return_to_shell(self):
+        session = Session()
+        session.boot()
+        session.until()
+        def lcd_until(marker):
+            for _ in range(220):
+                session.step()
+                if marker in session.board.lcd:
+                    return
+            self.fail(f'LCD did not show {marker!r}')
+
+        app_start = len(session.output)
+        session.type(b'run timer\r')
+        session.until(b'TIMER: READY')
+        session.type(b'-')
+        session.until(b'00:30')
+        session.type(b'\r')
+        session.until(b'RUNNING')
+        session.type(b'\r')
+        session.until(b'PAUSED')
+        session.step()
+        paused_time = bytes(session.board.lcd[0x40:0x45])
+        for _ in range(5):
+            session.step()
+        self.assertEqual(bytes(session.board.lcd[0x40:0x45]), paused_time)
+        session.type(b'r')
+        session.until(b'TIMER: READY')
+        session.type(b'\r')
+        session.until(b'RUNNING')
+        lcd_until(b'00:29')
+        # Advance the real BIOS clock by >30 seconds without waiting for
+        # millions of emulated instructions; exercise countdown catch-up.
+        cpu = session.board.cpu
+        bank = struct.unpack('<H', cpu.mem_read(0x4f0, 2))[0] * 16
+        ticks = struct.unpack('<I', cpu.mem_read(bank + 0x8002, 4))[0]
+        cpu.mem_write(bank + 0x8002, struct.pack('<I', ticks + 600))
+        session.until(b'DONE!')
+        lcd_until(b'00:00')
+        self.assertNotIn(b'\x1b', session.output[app_start:])
+        self.assertNotIn(b'00:29', session.output[app_start:])
+        self.assertEqual(bytes(session.board.lcd[0x40:0x45]), b'00:00')
+        session.type(b'\x1b')
+        session.until()
+        self.assertIn(b'224 KiB', session.command('mem'))
 
     def test_one_bank_and_default_boot_menu(self):
         session = Session(mask=1)
