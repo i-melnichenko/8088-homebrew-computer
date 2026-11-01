@@ -66,7 +66,7 @@ $(BUILD_DIR)/os-kernel.bin: os/home8088/kernel.asm | $(BUILD_DIR)
 $(BUILD_DIR)/%.com: os/home8088/programs/%/main.asm lib/bios_api.inc | $(BUILD_DIR)
 	$(NASM) -f bin -I lib/ -o $@ $<
 
-$(BUILD_DIR)/home8088.img: $(BUILD_DIR)/os-boot.bin $(BUILD_DIR)/os-kernel.bin $(BUILD_DIR)/city.com $(BUILD_DIR)/reactor.com $(BUILD_DIR)/terminal.com scripts/make-os-image.py
+$(BUILD_DIR)/home8088.img: $(BUILD_DIR)/os-boot.bin $(BUILD_DIR)/os-kernel.bin $(BUILD_DIR)/city.com $(BUILD_DIR)/timer.com $(BUILD_DIR)/terminal.com scripts/make-os-image.py
 	python3 scripts/make-os-image.py $@ $(filter %.bin %.com,$^)
 
 $(BUILD_DIR)/city.com: os/home8088/programs/citylights/main.asm lib/bios_api.inc | $(BUILD_DIR)

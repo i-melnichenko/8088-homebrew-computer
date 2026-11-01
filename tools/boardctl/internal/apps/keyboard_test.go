@@ -3,9 +3,11 @@ package apps
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/i-melnichenko/8088-homebrew-computer/tools/boardctl/internal/client"
 	"github.com/i-melnichenko/8088-homebrew-computer/tools/boardctl/internal/protocol"
@@ -15,6 +17,7 @@ type keyboardTransport struct {
 	reader   bytes.Reader
 	requests []protocol.Frame
 	data     []byte
+	respond  func(protocol.Frame) []byte
 }
 
 func (s *keyboardTransport) Read(p []byte) (int, error) { return s.reader.Read(p) }
@@ -24,12 +27,83 @@ func (s *keyboardTransport) Write(p []byte) (int, error) {
 		return 0, err
 	}
 	s.requests = append(s.requests, f)
-	reply, err := protocol.Encode(protocol.Frame{Command: f.Command | 0x80, Sequence: f.Sequence, Data: s.data})
+	data := s.data
+	if s.respond != nil {
+		data = s.respond(f)
+	}
+	reply, err := protocol.Encode(protocol.Frame{Command: f.Command | 0x80, Sequence: f.Sequence, Data: data})
 	if err != nil {
 		return 0, err
 	}
 	s.reader.Reset(append([]byte("program UART text\r\n"), reply...))
 	return len(p), nil
+}
+
+func TestTerminalQueueFullKeepsKeyAndServicesGuest(t *testing.T) {
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+	var accepted []byte
+	diskPolled, outputPolled, rejected := false, false, false
+	s := &keyboardTransport{respond: func(f protocol.Frame) []byte {
+		switch f.Command {
+		case protocol.KeyboardEvent:
+			if !rejected {
+				rejected = true
+				return []byte{13}
+			}
+			if !diskPolled || !outputPolled {
+				t.Fatal("retried input before servicing disk and output")
+			}
+			accepted = append(accepted, f.Data[0])
+			return []byte{0, 1}
+		case protocol.DiskPoll:
+			diskPolled = true
+			return make([]byte, 8)
+		case protocol.TerminalPoll:
+			outputPolled = true
+			return []byte{0, 1, 'O', 'K'}
+		default:
+			t.Fatalf("unexpected command: %x", f.Command)
+			return nil
+		}
+	}}
+	inputs := make(chan terminalInput, 3)
+	inputs <- terminalInput{char: 'A'}
+	inputs <- terminalInput{char: 'B'}
+	inputs <- terminalInput{char: 3}
+	var out bytes.Buffer
+	err := interactiveLoop(ctx, client.New(s, nil), inputs, make(chan struct{}), true, &out, &diskService{image: make([]byte, diskImageSize)})
+	if err != nil || string(accepted) != "AB" || !strings.Contains(out.String(), "OK") {
+		t.Fatalf("err=%v accepted=%q output=%q", err, accepted, out.String())
+	}
+}
+
+func TestKeyboardQueueFullCanBeCancelled(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	attempts := 0
+	s := &keyboardTransport{respond: func(f protocol.Frame) []byte {
+		attempts++
+		if attempts == 2 {
+			cancel()
+		}
+		return []byte{13}
+	}}
+	inputs := make(chan terminalInput, 1)
+	inputs <- terminalInput{char: 'A'}
+	if err := keyboardLoop(ctx, client.New(s, nil), inputs, make(chan struct{})); err != nil || attempts != 2 {
+		t.Fatalf("err=%v attempts=%d", err, attempts)
+	}
+}
+
+func TestKeyboardQueueFullOnlyAppliesToEvents(t *testing.T) {
+	for _, command := range []byte{protocol.KeyboardEvent, protocol.KeyboardMode} {
+		s := &keyboardTransport{data: []byte{13}}
+		_, err := keyboardExchange(client.New(s, nil), command, []byte{1}, 1)
+		if err == nil || errors.Is(err, errKeyboardQueueFull) != (command == protocol.KeyboardEvent) {
+			t.Fatalf("command=%x err=%v", command, err)
+		}
+	}
 }
 
 func TestKeyboardExchangeNoScreenRequests(t *testing.T) {

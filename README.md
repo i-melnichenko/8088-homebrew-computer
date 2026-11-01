@@ -38,7 +38,7 @@ tools/boardctl/boardctl -port /dev/cu.usbserial-XXXX terminal \
 ```
 
 Install the built BIOS before booting the OS. HOME8088 applications run with
-RUN CITY, RUN REACTOR or RUN TERMINAL; MS-DOS starts DOS programs by filename.
+RUN CITY, RUN TIMER or RUN TERMINAL; MS-DOS starts DOS programs by filename.
 BIOS/boardctl do not manage application uploads or resident slots. Normal host operations require
 [UART protocol 2.0](docs/uart-protocol.md); EEPROM operations negotiate the
 installed upgrade transport separately so an older BIOS can still be updated.

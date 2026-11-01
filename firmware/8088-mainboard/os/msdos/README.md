@@ -81,7 +81,7 @@ TIME
 
 HELLO.COM prints through DOS INT 21h/AH=09h and exits through AH=4Ch. This is a
 DOS application, separate from the native HOME8088 OS application contract.
-The existing CITY/REACTOR/TERMINAL apps are not included: they terminate through
+The existing CITY/TIMER/TERMINAL apps are not included: they terminate through
 the native OS and have not been validated as DOS applications.
 
 ## Microsoft DEBUG

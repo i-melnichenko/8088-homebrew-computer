@@ -12,6 +12,7 @@ RUN CITY
 Esc returns to the OS shell. The application owns its OS-provided segment and
 stack and terminates with INT 20h. BIOS/boardctl application uploads are not used.
 
-Citylights shows its animation on the LCD and ANSI terminal. Keyboard-only mode
-disables UART animation. It uses the BIOS hardware timer when available and
-approximate software delays otherwise.
+Citylights animates only the LCD. UART carries plain startup/help and exit
+messages, without ANSI screen drawing or animation frames. Keyboard-only mode
+suppresses UART messages. It uses the BIOS hardware timer when available and
+approximate software delays otherwise. LCD presence is not hardware-detected.

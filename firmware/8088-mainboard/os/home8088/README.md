@@ -54,9 +54,13 @@ mount the disk again.
 | `MEM` | Conventional RAM available below the BIOS reservation |
 | `DIR` | List files in the FAT12 root directory |
 | `RUN CITY` | Start Citylights; Esc returns to the shell |
-| `RUN REACTOR` | Start Reactor; Esc returns to the shell |
+| `RUN TIMER` | Start the countdown timer; Esc returns to the shell |
 | `RUN TERMINAL` | Start the UART/LCD example; Esc returns to the shell |
 | `REBOOT` | Restart BIOS POST |
+
+The [timer](programs/timer/README.md) starts at one minute. Enter starts or
+pauses, +/- adjusts the duration by 30 seconds while stopped, R resets, and
+Esc exits. It uses BIOS PIT ticks and displays on the LCD; UART carries service messages only.
 
 Commands and names are case insensitive. Filenames use 8.3 notation; Citylights
 is named `CITY.COM` on disk. The loader follows FAT12 cluster chains. Programs
